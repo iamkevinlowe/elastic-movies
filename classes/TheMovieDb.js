@@ -7,6 +7,7 @@ const Reporter = require('./Reporter');
 
 const API_HOST = 'api.themoviedb.org';
 const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI';
+const API_PAGE_LIMIT = 1000;
 
 class TheMovieDb {
 	constructor(config = {}) {
@@ -66,6 +67,7 @@ class TheMovieDb {
 							typeof response.page !== 'undefined'
 							&& typeof response.total_pages !== 'undefined'
 							&& response.page < response.total_pages
+							&& response.page < API_PAGE_LIMIT - 1
 						) {
 							this._lastRequestForPagination = {
 								endpoint,
@@ -115,6 +117,10 @@ class TheMovieDb {
 		const { endpoint, params } = this._lastRequestForPagination;
 		this._lastRequestForPagination = null;
 		params.page++;
+
+		if (params.page > API_PAGE_LIMIT) {
+			return;
+		}
 
 		return await this.request(endpoint, params);
 	}

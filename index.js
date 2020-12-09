@@ -179,10 +179,11 @@ async function createIndexIfNotExists() {
  * @async
  */
 async function indexMoviesPopular() {
+	const promises = [];
 	let movies = await tmdbClient.request('movie/popular', { page: 1 });
 
 	do {
-		movies.map(async movie => {
+		Array.prototype.push.apply(promises, movies.map(async movie => {
 			Object.keys(movie).forEach(key => {
 				if (typeof indexMappingMovies[key] === 'undefined') {
 					delete movie[key];
@@ -190,9 +191,11 @@ async function indexMoviesPopular() {
 			});
 
 			Object.assign(movie, await getMovieDetails(movie.id));
-			await esClient.request('index', { id: movie.id, index, body: movie });
-		});
+			return esClient.request('index', { id: movie.id, index, body: movie });
+		}));
 	} while (movies = await tmdbClient.getNextPage())
+
+	await Promise.all(promises);
 }
 
 /**
