@@ -11,11 +11,73 @@ class Elasticsearch {
 		this._reporter = new Reporter(this.constructor.name);
 	}
 
+	/**
+	 * Reports what happened
+	 */
 	report() {
 		this._reporter.report();
 	}
 
+	/**
+	 * Updates the field mappings for the given index
+	 *
+	 * @async
+	 * @param {String} index
+	 * @param {Object} mappings
+	 * @returns {Promise<void>}
+	 */
+	async updateMapping(index, mappings) {
+		const clonedIndex = `${index}_clone`;
+
+		await this.request('indices.create', {
+			index: clonedIndex,
+			body: { mappings }
+		});
+
+		await this.request('indices.putSettings', {
+			index,
+			body: { 'index.blocks.write': true }
+		});
+
+		await this.request('reindex', {
+			body: {
+				source: { index },
+				dest: { index: clonedIndex }
+			}
+		});
+
+		await this.request('indices.delete', {
+			index
+		});
+
+		await this.request('indices.putSettings', {
+			index: clonedIndex,
+			body: { 'index.blocks.write': true }
+		});
+
+		await this.request('reindex', {
+			body: {
+				source: { index: clonedIndex },
+				dest: { index }
+			}
+		});
+
+		await this.request('indices.delete', {
+			index: clonedIndex
+		});
+	}
+
+	/**
+	 * Makes a request to Elasticsearch
+	 *
+	 * @async
+	 * @param {String} endpoint
+	 * @param {Object} params
+	 * @returns {Promise<*>}
+	 */
 	async request(endpoint, params) {
+		// https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html
+
 		const timeId = this._reporter.time();
 
 		const [namespace, verb] = endpoint.split('.');
@@ -40,7 +102,7 @@ class Elasticsearch {
 			this._reporter.time(timeId);
 			return response.body;
 		} catch (e) {
-			this._reporter.addError(e.meta.body);
+			this._reporter.addError(e.meta && e.meta.body || e);
 		}
 
 		this._reporter.time(timeId);

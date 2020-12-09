@@ -27,7 +27,7 @@ class Reporter {
 	time(id = null) {
 		if (id) {
 			if (typeof this._times[id] === 'undefined') {
-				this.errors.push(`No time found for id: ${id}`);
+				this._errors.push(`No time found for id: ${id}`);
 				return;
 			}
 

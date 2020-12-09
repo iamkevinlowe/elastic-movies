@@ -12,17 +12,27 @@ class TheMovieDb {
 	constructor(config = {}) {
 		this._config = config;
 		this._reporter = new Reporter(this.constructor.name);
+		this._lastRequestForPagination = null;
 	}
 
+	/**
+	 * Reports what happened
+	 */
 	report() {
 		this._reporter.report();
 	}
 
-	async getMoviesPopular(page = 1) {
-		return await this._request('movie/popular', { page });
-	}
+	/**
+	 * Makes an api request to The Movie DB
+	 *
+	 * @async
+	 * @param endpoint
+	 * @param params
+	 * @returns {Promise<*>}
+	 */
+	async request(endpoint, params = {}) {
+		console.log(`Requesting ${endpoint}`, params);
 
-	async _request(endpoint, params = {}) {
 		const timeId = this._reporter.time();
 
 		const options = {
@@ -45,14 +55,34 @@ class TheMovieDb {
 				});
 
 				res.on('end', () => {
-					const response = JSON.parse(chunks);
+					try {
+						const response = JSON.parse(chunks);
 
-					if (this.debug) {
-						console.info(response);
+						if (this.debug) {
+							console.info(response);
+						}
+
+						if (
+							typeof response.page !== 'undefined'
+							&& typeof response.total_pages !== 'undefined'
+							&& response.page < response.total_pages
+						) {
+							this._lastRequestForPagination = {
+								endpoint,
+								params
+							};
+
+							resolve(response.results);
+						} else {
+							this._lastRequestForPagination = null;
+							resolve(response);
+						}
+					} catch (e) {
+						this._reporter.addError(e);
+						resolve();
+					} finally {
+						this._reporter.time(timeId);
 					}
-
-					resolve(response);
-					this._reporter.time(timeId);
 				});
 
 				res.on('error', error => {
@@ -70,6 +100,23 @@ class TheMovieDb {
 
 			req.end()
 		});
+	}
+
+	/**
+	 * Fetches the next page of results
+	 *
+	 * @returns {Promise<*>}
+	 */
+	async getNextPage() {
+		if (!this._lastRequestForPagination) {
+			return;
+		}
+
+		const { endpoint, params } = this._lastRequestForPagination;
+		this._lastRequestForPagination = null;
+		params.page++;
+
+		return await this.request(endpoint, params);
 	}
 }
 
