@@ -30,6 +30,7 @@ class TheMovieDb {
 
 	/**
 	 * Makes an api request to The Movie DB
+	 * [API Docs]{@link https://developers.themoviedb.org/3/getting-started/introduction}
 	 *
 	 * @async
 	 * @param endpoint
@@ -37,7 +38,9 @@ class TheMovieDb {
 	 * @returns {Promise<ApiResponse>}
 	 */
 	async request(endpoint, params = {}) {
-		console.log(`Requesting ${endpoint}`, params);
+		if (this._config.debug) {
+			console.info(`[${this.constructor.name}] Requesting ${endpoint}`, params);
+		}
 
 		const timeId = this._reporter.time();
 
@@ -66,8 +69,8 @@ class TheMovieDb {
 					try {
 						const response = JSON.parse(chunks);
 
-						if (this.debug) {
-							console.info(response);
+						if (this._config.debug) {
+							console.info(`[${this.constructor.name}] Received response:`, response);
 						}
 
 						if (
@@ -113,4 +116,4 @@ class TheMovieDb {
 	}
 }
 
-module.exports = TheMovieDb;
+module.exports = new TheMovieDb({ debug: process.env.DEBUG || false });

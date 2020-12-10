@@ -39,6 +39,15 @@ class ApiResponse {
 	}
 
 	/**
+	 * Returns true if there is a next request callback
+	 *
+	 * @returns {Boolean}
+	 */
+	hasNextResponse() {
+		return !!this._nextRequestCallback;
+	}
+
+	/**
 	 * Returns the response from the next paginated request
 	 *
 	 * @async
