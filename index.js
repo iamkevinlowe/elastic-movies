@@ -51,16 +51,12 @@ async function indexMoviesPopular() {
 	};
 
 	if (debug) {
+		const startTime = +new Date();
 		logInterval = setInterval(() => {
 			console.info(`[Main] Found ${processedCounts.found} movies`);
 			console.info(`[Main] Indexed ${processedCounts.indexed} movies`);
-			const percentComplete = (processedCounts.found + processedCounts.indexed) / Movie.MAX_POPULAR_MOVIES;
-			const progressChars = 50;
-			let progressBar = '';
-			for (let i = 0; i < progressChars; i++) {
-				progressBar += (i / progressChars) < percentComplete ? '\u2588' : '\u2591';
-			}
-			console.info(`[Main] [${progressBar}] ${(percentComplete * 100).toFixed(2)}%`);
+			const { progressBar, percent, eta } = getProgress(startTime, processedCounts.found + processedCounts.indexed, Movie.MAX_POPULAR_MOVIES);
+			console.info(`[Main] ${progressBar} ${percent}% ETA: ${eta}`);
 		}, 5000);
 	}
 
@@ -80,6 +76,32 @@ async function indexMoviesPopular() {
 	if (debug) {
 		clearInterval(logInterval);
 	}
+}
+
+/**
+ * Returns progress information
+ *
+ * @param {Number} startTime
+ * @param {Number} processed
+ * @param {Number} total
+ * @returns {{eta: String, progressBar: String, percent: String}}
+ */
+function getProgress(startTime, processed, total) {
+	const percentComplete = processed / total;
+	const progressChars = 50;
+	let progressBar = '';
+	for (let i = 0; i < progressChars; i++) {
+		progressBar += (i / progressChars) < percentComplete ? '\u2588' : '\u2591';
+	}
+
+	const percent = (percentComplete * 100).toFixed(2);
+
+	let eta = '...';
+	if (processed) {
+		const m = (+new Date() - startTime) / processed;
+		eta = `${((-m * processed + m * total) / 1000).toFixed(2)}s`;
+	}
+	return { progressBar, percent, eta };
 }
 
 /**
