@@ -69,10 +69,6 @@ class TheMovieDb {
 					try {
 						const response = JSON.parse(chunks);
 
-						if (this._config.debug) {
-							console.info(`[${this.constructor.name}] Received response:`, response);
-						}
-
 						if (
 							typeof response.page !== 'undefined'
 							&& typeof response.total_pages !== 'undefined'

@@ -85,7 +85,8 @@ class Elasticsearch {
 	 */
 	async request(endpoint, params) {
 		if (this._config.debug) {
-			console.info(`[${this.constructor.name}] Requesting ${endpoint}`, params);
+			const { body, ...debugParams } = params;
+			console.info(`[${this.constructor.name}] Requesting ${endpoint}`, debugParams);
 		}
 
 		const timeId = this._reporter.time();
@@ -104,10 +105,6 @@ class Elasticsearch {
 
 		try {
 			const response = await method.call(this._client, params, { ignore: [404] });
-
-			if (this._config.debug) {
-				console.info(`[${this.constructor.name}] Received response:`, response);
-			}
 
 			this._reporter.time(timeId);
 			return response.body;

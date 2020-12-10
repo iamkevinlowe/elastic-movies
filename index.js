@@ -5,6 +5,7 @@ const debug = process.env.DEBUG || false;
 const Movie = require('./classes/Movie');
 const tmdbClient = require('./classes/TheMovieDb');
 const esClient = require('./classes/Elasticsearch');
+const console = require('./classes/EmojiConsole');
 
 const index = 'movies';
 
@@ -51,10 +52,16 @@ async function indexMoviesPopular() {
 
 	if (debug) {
 		logInterval = setInterval(() => {
-			console.clear();
 			console.info(`[Main] Found ${processedCounts.found} movies`);
 			console.info(`[Main] Indexed ${processedCounts.indexed} movies`);
-		}, 1000);
+			const percentComplete = (processedCounts.found + processedCounts.indexed) / Movie.MAX_POPULAR_MOVIES;
+			const progressChars = 50;
+			let progressBar = '';
+			for (let i = 0; i < progressChars; i++) {
+				progressBar += (i / progressChars) < percentComplete ? '\u2588' : '\u2591';
+			}
+			console.info(`[Main] [${progressBar}] ${(percentComplete * 100).toFixed(2)}%`);
+		}, 5000);
 	}
 
 	while (movies = await Movie.getPopularBatched()) {

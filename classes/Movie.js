@@ -295,5 +295,6 @@ class Movie {
 }
 
 Movie._nextPopularResponse = null;
+Movie.MAX_POPULAR_MOVIES = 10000;
 
 module.exports = Movie;
