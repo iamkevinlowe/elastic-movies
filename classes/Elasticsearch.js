@@ -4,9 +4,16 @@ const { Client } = require('@elastic/elasticsearch');
 const console = require('./EmojiConsole');
 const Reporter = require('./Reporter');
 
+const ES_HOST = 'http://localhost:9200';
+
 class Elasticsearch {
-	constructor(node, config = {}) {
-		this._client = new Client({ node });
+	/**
+	 * Creates an instance of Elasticsearch
+	 *
+	 * @param {Object} config
+	 */
+	constructor(config = {}) {
+		this._client = new Client({ node: ES_HOST });
 		this._config = config;
 		this._reporter = new Reporter(this.constructor.name);
 	}

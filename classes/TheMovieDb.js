@@ -4,16 +4,21 @@ const https = require('https');
 const querystring = require('querystring');
 const console = require('./EmojiConsole');
 const Reporter = require('./Reporter');
+const ApiResponse = require('./ApiResponse');
 
 const API_HOST = 'api.themoviedb.org';
 const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI';
 const API_PAGE_LIMIT = 1000;
 
 class TheMovieDb {
+	/**
+	 * Creates an instance of TheMovieDB
+	 *
+	 * @param {Object} config
+	 */
 	constructor(config = {}) {
 		this._config = config;
 		this._reporter = new Reporter(this.constructor.name);
-		this._lastRequestForPagination = null;
 	}
 
 	/**
@@ -29,7 +34,7 @@ class TheMovieDb {
 	 * @async
 	 * @param endpoint
 	 * @param params
-	 * @returns {Promise<*>}
+	 * @returns {Promise<ApiResponse>}
 	 */
 	async request(endpoint, params = {}) {
 		console.log(`Requesting ${endpoint}`, params);
@@ -48,6 +53,8 @@ class TheMovieDb {
 		};
 
 		return new Promise((resolve, reject) => {
+			const apiResponse = new ApiResponse();
+
 			const req = https.request(options, res => {
 				let chunks = '';
 
@@ -66,63 +73,43 @@ class TheMovieDb {
 						if (
 							typeof response.page !== 'undefined'
 							&& typeof response.total_pages !== 'undefined'
-							&& response.page < response.total_pages
-							&& response.page < API_PAGE_LIMIT - 1
+							&& typeof response.results !== 'undefined'
 						) {
-							this._lastRequestForPagination = {
-								endpoint,
-								params
-							};
+							apiResponse.setResponse(response.results);
 
-							resolve(response.results);
+							if (
+								response.page < response.total_pages
+								&& response.page < API_PAGE_LIMIT
+							) {
+								params.page++;
+								apiResponse.setNextRequestCallback(this.request.bind(this, endpoint, params));
+							}
 						} else {
-							this._lastRequestForPagination = null;
-							resolve(response);
+							apiResponse.setResponse(response);
 						}
 					} catch (e) {
 						this._reporter.addError(e);
-						resolve();
 					} finally {
+						resolve(apiResponse);
 						this._reporter.time(timeId);
 					}
 				});
 
 				res.on('error', error => {
 					this._reporter.addError(error);
-					resolve();
+					resolve(apiResponse);
 					this._reporter.time(timeId);
 				});
 			});
 
 			req.on('error', error => {
 				this._reporter.addError(error);
-				resolve();
+				resolve(apiResponse);
 				this._reporter.time(timeId);
 			});
 
 			req.end()
 		});
-	}
-
-	/**
-	 * Fetches the next page of results
-	 *
-	 * @returns {Promise<*>}
-	 */
-	async getNextPage() {
-		if (!this._lastRequestForPagination) {
-			return;
-		}
-
-		const { endpoint, params } = this._lastRequestForPagination;
-		this._lastRequestForPagination = null;
-		params.page++;
-
-		if (params.page > API_PAGE_LIMIT) {
-			return;
-		}
-
-		return await this.request(endpoint, params);
 	}
 }
 

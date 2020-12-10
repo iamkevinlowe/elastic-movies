@@ -1,6 +1,11 @@
 const console = require('./EmojiConsole');
 
 class Reporter {
+	/**
+	 * Creates an instance of Reporter
+	 *
+	 * @param {String|null} caller
+	 */
 	constructor(caller = null) {
 		this._caller = caller;
 		this._times = {};
@@ -8,6 +13,9 @@ class Reporter {
 		this._errors = [];
 	}
 
+	/**
+	 * Reports what happened
+	 */
 	report() {
 		const prefix = this._caller ? `${this._caller}: ` : '';
 
@@ -24,6 +32,12 @@ class Reporter {
 		this._timeMs = 0;
 	}
 
+	/**
+	 * Records the time it took to perform an operation
+	 *
+	 * @param {String|null} id If falsy, will begin tracking the time.  If truthy, will end tracking the time for the provided id.
+	 * @returns {String|void}
+	 */
 	time(id = null) {
 		if (id) {
 			if (typeof this._times[id] === 'undefined') {
@@ -35,13 +49,18 @@ class Reporter {
 			delete this._times[id];
 		} else {
 			do {
-				id = Math.floor(Math.random() * 2 ** 24).toString(16).padStart(6, '0')
+				id = Math.floor(Math.random() * 2 ** 24).toString(16).padStart(6, '0');
 			} while (typeof this._times[id] !== 'undefined')
 			this._times[id] = +new Date();
 			return id;
 		}
 	}
 
+	/**
+	 * Adds a new error to the list of errors
+	 *
+	 * @param {*} error
+	 */
 	addError(error) {
 		this._errors.push(error);
 	}

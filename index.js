@@ -6,7 +6,7 @@ const TheMovieDb = require('./classes/TheMovieDb');
 const tmdbClient = new TheMovieDb({ debug });
 
 const Elasticsearch = require('./classes/Elasticsearch');
-const esClient = new Elasticsearch('http://localhost:9200', { debug });
+const esClient = new Elasticsearch({ debug });
 
 const index = 'movies';
 const indexMappingMovies = {
@@ -150,6 +150,11 @@ const indexMapping = {
 	}
 };
 
+/**
+ * Main function that begins indexing movies
+ *
+ * @returns {Promise<void>}
+ */
 async function run() {
 	await createIndexIfNotExists();
 	await indexMoviesPopular();
@@ -179,23 +184,30 @@ async function createIndexIfNotExists() {
  * @async
  */
 async function indexMoviesPopular() {
-	const promises = [];
-	let movies = await tmdbClient.request('movie/popular', { page: 1 });
+	const moviesResponse = await tmdbClient.request('movie/popular', { page: 1 });
+	let movies = moviesResponse.getResponse();
 
 	do {
-		Array.prototype.push.apply(promises, movies.map(async movie => {
-			Object.keys(movie).forEach(key => {
-				if (typeof indexMappingMovies[key] === 'undefined') {
-					delete movie[key];
-				}
-			});
-
+		await Promise.all(movies.map(async movie => {
+			removeUnmappedProperties(movie, indexMappingMovies);
 			Object.assign(movie, await getMovieDetails(movie.id));
 			return esClient.request('index', { id: movie.id, index, body: movie });
 		}));
-	} while (movies = await tmdbClient.getNextPage())
+	} while (movies = await moviesResponse.getNextResponse())
+}
 
-	await Promise.all(promises);
+/**
+ * Removes properties from the given item that have no ES field mapping
+ *
+ * @param {Object} item
+ * @param {Object} mapping
+ */
+function removeUnmappedProperties(item, mapping) {
+	Object.keys(item).forEach(key => {
+		if (typeof mapping[key] === 'undefined') {
+			delete item[key];
+		}
+	});
 }
 
 /**
@@ -206,6 +218,7 @@ async function indexMoviesPopular() {
  * @returns {Promise<Object>}
  */
 async function getMovieDetails(id) {
+	const movieDetailsResponse = await tmdbClient.request(`movie/${id}`, { append_to_response: 'credits,keywords,recommendations,reviews,similar,videos' });
 	const {
 		credits: {
 			cast = [],
@@ -226,7 +239,7 @@ async function getMovieDetails(id) {
 		} = {},
 		videos: { results: videos = [] } = {},
 		...movie
-	} = await tmdbClient.request(`movie/${id}`, { append_to_response: 'credits,keywords,recommendations,reviews,similar,videos' }) || {};
+	} = movieDetailsResponse.getResponse() || {};
 
 	if (recommendationTotalPages > 1) {
 		Array.prototype.push.apply(recommendations, await getPaginatedResults(`movie/${movie.id}/recommendations`, 2));
@@ -240,48 +253,14 @@ async function getMovieDetails(id) {
 		Array.prototype.push.apply(similar, await getPaginatedResults(`movie/${movie.id}/similar`, 2));
 	}
 
-	[
-		{
-			items: cast,
-			mapping: indexMappingCast
-		},
-		{
-			items: crew,
-			mapping: indexMappingCrew
-		},
-		{
-			items: keywords,
-			mapping: indexMappingKeywords
-		},
-		{
-			items: recommendations,
-			mapping: indexMappingMovies
-		},
-		{
-			items: reviews,
-			mapping: indexMappingReviews
-		},
-		{
-			items: similar,
-			mapping: indexMappingMovies
-		},
-		{
-			items: videos,
-			mapping: indexMappingVideos
-		},
-		{
-			items: [movie],
-			mapping: indexMappingMoviesDetails
-		}
-	].forEach(({ items, mapping }) => {
-		items.forEach(item => {
-			Object.keys(item).forEach(key => {
-				if (typeof mapping[key] === 'undefined') {
-					delete item[key];
-				}
-			});
-		});
-	});
+	cast.forEach(item => removeUnmappedProperties(item, indexMappingCast));
+	crew.forEach(item => removeUnmappedProperties(item, indexMappingCrew));
+	keywords.forEach(item => removeUnmappedProperties(item, indexMappingKeywords));
+	recommendations.forEach(item => removeUnmappedProperties(item, indexMappingMovies));
+	reviews.forEach(item => removeUnmappedProperties(item, indexMappingReviews));
+	similar.forEach(item => removeUnmappedProperties(item, indexMappingMovies));
+	videos.forEach(item => removeUnmappedProperties(item, indexMappingVideos));
+	removeUnmappedProperties(movie, indexMappingMoviesDetails);
 
 	Object.assign(movie, {
 		credits: {
@@ -307,10 +286,11 @@ async function getMovieDetails(id) {
  * @returns {Promise<Object[]>}
  */
 async function getPaginatedResults(endpoint, page = 1) {
-	const results = await tmdbClient.request(endpoint, { page });
+	const paginatedResponse = await tmdbClient.request(endpoint, { page });
+	const results = paginatedResponse.getResponse();
 	let items;
 
-	while (items = await tmdbClient.getNextPage()) {
+	while (items = await paginatedResponse.getNextResponse()) {
 		Array.prototype.push.apply(results, items);
 	}
 
