@@ -1,7 +1,6 @@
 'use strict'
 
 const { Client } = require('@elastic/elasticsearch');
-const console = require('./EmojiConsole');
 const debugConsole = require('./DebugConsole');
 const Reporter = require('./Reporter');
 

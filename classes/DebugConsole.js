@@ -1,6 +1,9 @@
 const console = require('./EmojiConsole');
 
 class DebugConsole {
+	/**
+	 * Creates an instance of DebugConsole
+	 */
 	constructor() {
 		this._logs = {};
 		this._order = [];
@@ -8,6 +11,12 @@ class DebugConsole {
 		this._loggingInterval = null;
 	}
 
+	/**
+	 * Adds group name for logging
+	 *
+	 * @param {String} name
+	 * @param {Number|null} order
+	 */
 	addLogging(name, order = null) {
 		if (typeof this._logs[name] === 'undefined') {
 			this._logs[name] = [];
@@ -24,6 +33,12 @@ class DebugConsole {
 		}
 	}
 
+	/**
+	 * Queues a log message for the given group name
+	 *
+	 * @param {String} name
+	 * @param {*} args
+	 */
 	addLog(name, ...args) {
 		if (typeof this._logs[name] === 'undefined') {
 			this.addLogging(name);
@@ -35,12 +50,20 @@ class DebugConsole {
 		log.splice(0, log.length - this._logsLimit);
 	}
 
+	/**
+	 * Clears the queued logs messages for the given group name
+	 *
+	 * @param {String} name
+	 */
 	clearLog(name) {
 		if (typeof this._logs[name] !== 'undefined') {
 			this._logs[name] = [];
 		}
 	}
 
+	/**
+	 * Begin outputting logs
+	 */
 	startLogging() {
 		if (this._loggingInterval) {
 			return;
