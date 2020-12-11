@@ -2,7 +2,7 @@
 
 const https = require('https');
 const querystring = require('querystring');
-const console = require('./EmojiConsole');
+const debugConsole = require('./DebugConsole');
 const Reporter = require('./Reporter');
 const ApiResponse = require('./ApiResponse');
 
@@ -39,7 +39,8 @@ class TheMovieDb {
 	 */
 	async request(endpoint, params = {}) {
 		if (this._config.debug) {
-			console.info(`[${this.constructor.name}] Requesting ${endpoint}`, params);
+			const { ...debugParams } = params;
+			debugConsole.addLog(this.constructor.name, `Requesting ${endpoint}`, debugParams);
 		}
 
 		const timeId = this._reporter.time();

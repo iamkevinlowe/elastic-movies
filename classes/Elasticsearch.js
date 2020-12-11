@@ -2,6 +2,7 @@
 
 const { Client } = require('@elastic/elasticsearch');
 const console = require('./EmojiConsole');
+const debugConsole = require('./DebugConsole');
 const Reporter = require('./Reporter');
 
 const ES_HOST = 'http://localhost:9200';
@@ -86,7 +87,7 @@ class Elasticsearch {
 	async request(endpoint, params) {
 		if (this._config.debug) {
 			const { body, ...debugParams } = params;
-			console.info(`[${this.constructor.name}] Requesting ${endpoint}`, debugParams);
+			debugConsole.addLog(this.constructor.name, `Requesting ${endpoint}`, debugParams);
 		}
 
 		const timeId = this._reporter.time();

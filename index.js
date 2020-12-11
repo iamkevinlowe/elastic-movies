@@ -6,6 +6,7 @@ const Movie = require('./classes/Movie');
 const tmdbClient = require('./classes/TheMovieDb');
 const esClient = require('./classes/Elasticsearch');
 const console = require('./classes/EmojiConsole');
+const debugConsole = require('./classes/DebugConsole');
 
 const index = 'movies';
 
@@ -52,11 +53,13 @@ async function indexMoviesPopular() {
 
 	if (debug) {
 		const startTime = +new Date();
+		debugConsole.addLogging('Main', 0);
 		logInterval = setInterval(() => {
-			console.info(`[Main] Found ${processedCounts.found} movies`);
-			console.info(`[Main] Indexed ${processedCounts.indexed} movies`);
+			debugConsole.clearLog('Main');
+			debugConsole.addLog('Main', `Found ${processedCounts.found} movies`);
+			debugConsole.addLog('Main', `Indexed ${processedCounts.indexed} movies`);
 			const { progressBar, percent, eta } = getProgress(startTime, processedCounts.found + processedCounts.indexed, Movie.MAX_POPULAR_MOVIES);
-			console.info(`[Main] ${progressBar} ${percent}% ETA: ${eta}`);
+			debugConsole.addLog('Main', `${progressBar} ${percent}% ETA: ${eta}`);
 		}, 5000);
 	}
 
@@ -96,11 +99,32 @@ function getProgress(startTime, processed, total) {
 
 	const percent = (percentComplete * 100).toFixed(2);
 
-	let eta = '...';
+	let eta = '';
 	if (processed) {
-		const m = (+new Date() - startTime) / processed;
-		eta = `${((-m * processed + m * total) / 1000).toFixed(2)}s`;
+		const timePerProcessed = (+new Date() - startTime) / processed;
+		const timeRemainingSeconds = (total - processed) * timePerProcessed / 1000;
+
+		const days = Math.floor(timeRemainingSeconds / 86400);
+		const hours = Math.floor((timeRemainingSeconds % 86400) / 3600);
+		const minutes = Math.floor((timeRemainingSeconds % 3600) / 60);
+		const seconds = Math.floor(timeRemainingSeconds % 60);
+		if (days) {
+			eta += `${days}d `;
+		}
+		if (hours) {
+			eta += `${hours}h `;
+		}
+		if (minutes) {
+			eta += `${minutes}m `;
+		}
+		if (seconds) {
+			eta += `${seconds}s`;
+		}
+		eta = eta.trim();
+	} else {
+		eta = '...';
 	}
+
 	return { progressBar, percent, eta };
 }
 
