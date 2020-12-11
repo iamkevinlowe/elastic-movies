@@ -157,7 +157,9 @@ async function updateMapping() {
 	esClient.report();
 }
 
-run().catch(console.error);
+run()
+	.then(() => process.exit())
+	.catch(console.error);
 
 process.on('SIGINT', () => {
 	process.exit();
