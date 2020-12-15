@@ -63,13 +63,13 @@ async function indexMoviesPopular() {
 		}, 5000);
 	}
 
-	while (movies = await Movie.getPopularBatched()) {
+	while (movies = await Movie.fetchPopularBatched()) {
 		await Promise.all(movies.map(async movie => {
 			const response = await esClient.request('get', { index, id: movie.id });
 			if (response && response.found) {
 				processedCounts.found++;
 			} else {
-				await movie.addDetails();
+				await movie.fetchAdditionalDetails();
 				processedCounts.indexed++;
 				return esClient.request('index', { index, id: movie.id, body: movie });
 			}
