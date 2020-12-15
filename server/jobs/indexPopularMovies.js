@@ -2,11 +2,11 @@
 
 const debug = process.env.DEBUG || false;
 
-const Movie = require('./classes/Movie');
-const tmdbClient = require('./classes/TheMovieDb');
-const esClient = require('./classes/Elasticsearch');
-const console = require('./classes/EmojiConsole');
-const debugConsole = require('./classes/DebugConsole');
+const Movie = require('../classes/Movie');
+const tmdbClient = require('../classes/TheMovieDb');
+const esClient = require('../classes/Elasticsearch');
+const console = require('../classes/EmojiConsole');
+const debugConsole = require('../classes/DebugConsole');
 
 const index = 'movies';
 

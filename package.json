@@ -2,15 +2,15 @@
 	"name": "elastic-movies",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
+	"main": "server/index.js",
 	"scripts": {
-		"start": "node index.js",
-		"debug": "DEBUG=true node index.js",
+		"job:index:start": "node server/jobs/indexPopularMovies.js",
+		"job:index:debug": "DEBUG=true node server/jobs/indexPopularMovies.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"app:server": "cd app/server && node index.js",
-		"app:start": "cd app && webpack serve --open 'Google Chrome'",
-		"app:dev": "cd app && webpack --mode development",
-		"app:build": "cd app && webpack --mode production"
+		"app:server": "node server/index.js",
+		"app:dev": "webpack serve --open 'Google Chrome'",
+		"app:build:dev": "webpack --mode development",
+		"app:build:prod": "webpack --mode production"
 	},
 	"keywords": [],
 	"author": "",
