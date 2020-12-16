@@ -1,40 +1,10 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-import React, { useState } from 'react';
+
+import React from 'react';
 import { render } from 'react-dom';
 
-const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ './common/moviesAPI');
-
-function App() {
-	const [isLoading, setIsLoading] = useState(false);
-	const [movies, setMovies] = useState([]);
-
-	const onGetMoviesClick = () => {
-		setIsLoading(true);
-		getMovieModule()
-			.then(({ getMovies }) => {
-				getMovies().then(({ body }) => {
-					setIsLoading(false);
-					setMovies(body);
-				});
-			});
-	};
-
-	return (
-		<div>
-			{isLoading
-				? 'Loading...'
-				: (
-					<>
-						<button onClick={onGetMoviesClick}>Load!</button>
-						{movies.map(movie => (
-							<div>{movie.title}</div>
-						))}
-					</>
-				)
-			}
-		</div>
-	);
-}
+import App from './components/App';
 
 render(<App />, document.getElementById('root'));
