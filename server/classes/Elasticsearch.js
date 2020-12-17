@@ -10,7 +10,7 @@ class Elasticsearch {
 	/**
 	 * Creates an instance of Elasticsearch
 	 *
-	 * @param {Object} config
+	 * @param {Object} [config={}]
 	 */
 	constructor(config = {}) {
 		this._client = new Client({ node: ES_HOST });
@@ -27,6 +27,7 @@ class Elasticsearch {
 
 	/**
 	 * Updates the field mappings for the given index
+	 * Note: Broken
 	 *
 	 * @async
 	 * @param {String} index

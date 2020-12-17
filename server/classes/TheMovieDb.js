@@ -14,7 +14,7 @@ class TheMovieDb {
 	/**
 	 * Creates an instance of TheMovieDB
 	 *
-	 * @param {Object} config
+	 * @param {Object} [config={}]
 	 */
 	constructor(config = {}) {
 		this._config = config;
@@ -33,8 +33,8 @@ class TheMovieDb {
 	 * [API Docs]{@link https://developers.themoviedb.org/3/getting-started/introduction}
 	 *
 	 * @async
-	 * @param endpoint
-	 * @param params
+	 * @param {String} endpoint
+	 * @param {Object} [params={}]
 	 * @returns {Promise<ApiResponse>}
 	 */
 	async request(endpoint, params = {}) {

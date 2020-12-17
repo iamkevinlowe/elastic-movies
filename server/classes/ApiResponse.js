@@ -2,7 +2,7 @@ class ApiResponse {
 	/**
 	 * Creates an instance of ApiResponse
 	 *
-	 * @param {*|null} response
+	 * @param {*|null} [response=null]
 	 */
 	constructor(response = null) {
 		this._response = response;
@@ -21,7 +21,7 @@ class ApiResponse {
 	/**
 	 * Sets a response
 	 *
-	 * @param {*|null} response
+	 * @param {*|null} [response=null]
 	 */
 	setResponse(response = null) {
 		this._response = response;

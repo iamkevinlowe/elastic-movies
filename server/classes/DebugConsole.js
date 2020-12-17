@@ -15,7 +15,7 @@ class DebugConsole {
 	 * Adds group name for logging
 	 *
 	 * @param {String} name
-	 * @param {Number|null} order
+	 * @param {Number|null} [order=null]
 	 */
 	addLogging(name, order = null) {
 		if (typeof this._logs[name] === 'undefined') {

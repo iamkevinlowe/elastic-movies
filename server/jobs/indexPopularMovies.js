@@ -7,6 +7,7 @@ const tmdbClient = require('../classes/TheMovieDb');
 const esClient = require('../classes/Elasticsearch');
 const console = require('../classes/EmojiConsole');
 const debugConsole = require('../classes/DebugConsole');
+const ProgressLogger = require('../classes/ProgressLogger');
 
 const index = 'movies';
 
@@ -45,22 +46,15 @@ async function createIndexIfNotExists() {
  */
 async function indexMoviesPopular() {
 	let movies;
-	let logInterval;
+	let progressLogger;
 	const processedCounts = {
 		found: 0,
 		indexed: 0
 	};
 
 	if (debug) {
-		const startTime = +new Date();
 		debugConsole.addLogging('Main', 0);
-		logInterval = setInterval(() => {
-			debugConsole.clearLog('Main');
-			debugConsole.addLog('Main', `Found ${processedCounts.found} movies`);
-			debugConsole.addLog('Main', `Indexed ${processedCounts.indexed} movies`);
-			const { progressBar, percent, eta } = getProgress(startTime, processedCounts.found + processedCounts.indexed, Movie.MAX_POPULAR_MOVIES);
-			debugConsole.addLog('Main', `${progressBar} ${percent}% ETA: ${eta}`);
-		}, 5000);
+		progressLogger = new ProgressLogger(Movie.MAX_POPULAR_MOVIES);
 	}
 
 	while (movies = await Movie.fetchPopularBatched()) {
@@ -74,91 +68,22 @@ async function indexMoviesPopular() {
 				return esClient.request('index', { index, id: movie.id, body: movie });
 			}
 		}));
+
+		if (debug) {
+			debugConsole.clearLog('Main');
+			debugConsole.addLog('Main', `Found ${processedCounts.found} movies`);
+			debugConsole.addLog('Main', `Indexed ${processedCounts.indexed} movies`);
+			progressLogger.setProcessed(processedCounts.found + processedCounts.indexed);
+			const progressBar = progressLogger.getProgressBar();
+			const percentComplete = progressLogger.getPercentComplete();
+			const eta = progressLogger.getEta();
+			debugConsole.addLog('Main', `${progressBar} ${percentComplete}% ETA: ${eta}`);
+		}
 	}
-
-	if (debug) {
-		clearInterval(logInterval);
-	}
-}
-
-/**
- * Returns progress information
- *
- * @param {Number} startTime
- * @param {Number} processed
- * @param {Number} total
- * @returns {{eta: String, progressBar: String, percent: String}}
- */
-function getProgress(startTime, processed, total) {
-	const percentComplete = processed / total;
-	const progressChars = 50;
-	let progressBar = '';
-	for (let i = 0; i < progressChars; i++) {
-		progressBar += (i / progressChars) < percentComplete ? '\u2588' : '\u2591';
-	}
-
-	const percent = (percentComplete * 100).toFixed(2);
-
-	let eta = '';
-	if (processed) {
-		const timePerProcessed = (+new Date() - startTime) / processed;
-		const timeRemainingSeconds = (total - processed) * timePerProcessed / 1000;
-
-		const days = Math.floor(timeRemainingSeconds / 86400);
-		const hours = Math.floor((timeRemainingSeconds % 86400) / 3600);
-		const minutes = Math.floor((timeRemainingSeconds % 3600) / 60);
-		const seconds = Math.floor(timeRemainingSeconds % 60);
-		if (days) {
-			eta += `${days}d `;
-		}
-		if (hours) {
-			eta += `${hours}h `;
-		}
-		if (minutes) {
-			eta += `${minutes}m `;
-		}
-		if (seconds) {
-			eta += `${seconds}s`;
-		}
-		eta = eta.trim();
-	} else {
-		eta = '...';
-	}
-
-	return { progressBar, percent, eta };
-}
-
-/**
- * Searches the index by the given string
- *
- * @async
- * @param {String} match
- * @returns {Promise<void>}
- */
-async function search(match) {
-	const { body } = await esClient.request('search', {
-		index,
-		body: {
-			query: { match }
-		}
-	});
-
-	console.log(`Search Results: ${JSON.stringify(body)}`);
-}
-
-/**
- * Updates the field mappings for an index
- *
- * @async
- * @returns {Promise<void>}
- */
-async function updateMapping() {
-	await esClient.updateMapping(index, Movie.getIndexMapping());
-	esClient.report();
 }
 
 run()
-	.then(() => process.exit())
+	.then(() => setTimeout(process.exit, 1000))
 	.catch(console.error);
 
 process.on('SIGINT', () => {

@@ -4,7 +4,7 @@ class Reporter {
 	/**
 	 * Creates an instance of Reporter
 	 *
-	 * @param {String|null} caller
+	 * @param {String|null} [caller=null]
 	 */
 	constructor(caller = null) {
 		this._caller = caller;
@@ -28,14 +28,14 @@ class Reporter {
 		}
 
 		const secondsElapsed = (this._timeMs / 1000).toFixed(2);
-		console.info(`${prefix}${secondsElapsed} seconds elapsed.\n`)
+		console.info(`\n${prefix}${secondsElapsed} seconds elapsed.`)
 		this._timeMs = 0;
 	}
 
 	/**
 	 * Records the time it took to perform an operation
 	 *
-	 * @param {String|null} id If falsy, will begin tracking the time.  If truthy, will end tracking the time for the provided id.
+	 * @param {String|null} [id=null] If falsy, will begin tracking the time.  If truthy, will end tracking the time for the provided id.
 	 * @returns {String|void}
 	 */
 	time(id = null) {

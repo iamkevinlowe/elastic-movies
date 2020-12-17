@@ -130,7 +130,7 @@ class Movie {
 	/**
 	 * Creates an instance of Movie
 	 *
-	 * @param {Object} properties
+	 * @param {Object} [properties={}]
 	 */
 	constructor(properties = {}) {
 		Object.assign(this, properties);
@@ -195,8 +195,8 @@ class Movie {
 	/**
 	 * Fetches movies
 	 *
-	 * @param {Object} options
-	 * @param {Object} body
+	 * @param {Object} [options={}]
+	 * @param {Object} [body={}]
 	 * @returns {Promise<{}>}
 	 */
 	static async fetchSearchResult(options = {}, body = {}) {
@@ -280,7 +280,7 @@ class Movie {
 	 * Fetches the full list of results from a paginated result set
 	 *
 	 * @param {String} endpoint
-	 * @param {Number} page
+	 * @param {Number} [page=1]
 	 * @returns {Promise<Object[]>}
 	 * @private
 	 * @async
