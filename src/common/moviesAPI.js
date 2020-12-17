@@ -4,7 +4,10 @@ export async function getMovies(params = {}) {
 	const url = new URL(ENDPOINT);
 	url.search = new URLSearchParams(params).toString();
 
-	const response = await fetch(url);
+	const controller = new AbortController();
+	setTimeout(() => controller.abort(), 5000);
+
+	const response = await fetch(url, { signal: controller.signal });
 	if (!response.ok) {
 		throw new Error(response.statusText || 'Failed to fetch movies');
 	}

@@ -12,10 +12,19 @@ function MoviesList() {
 		setIsLoading(true);
 
 		const { getMovies } = await getMovieModule();
-		const { body } = await getMovies({ query: searchTerm });
+		const params = {};
+		if (searchTerm) {
+			params.query = searchTerm;
+		}
 
-		setIsLoading(false);
-		setMovies(body);
+		try {
+			const { body } = await getMovies(params);
+			setMovies(body);
+		} catch (e) {
+			console.error(e.message);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const onSearchInputChange = e => {
