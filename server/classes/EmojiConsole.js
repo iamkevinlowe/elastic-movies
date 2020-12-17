@@ -1,10 +1,10 @@
 class EmojiConsole {
 	error(...args) {
-		console.log('❗ - ', ...args);
+		console.log('❌  - ', ...args);
 	}
 
 	success(...args) {
-		console.log('✔ - ', ...args);
+		console.log('✅  - ', ...args);
 	}
 
 	info(...args) {

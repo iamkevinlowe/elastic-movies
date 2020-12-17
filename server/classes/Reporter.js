@@ -17,7 +17,7 @@ class Reporter {
 	 * Reports what happened
 	 */
 	report() {
-		const prefix = this._caller ? `${this._caller}: ` : '';
+		const prefix = this._caller ? `[${this._caller}] ` : '';
 
 		if (this._errors.length) {
 			console.error(`${prefix} ${this._errors.length} errors encountered!`);
@@ -28,7 +28,7 @@ class Reporter {
 		}
 
 		const secondsElapsed = (this._timeMs / 1000).toFixed(2);
-		console.info(`\n${prefix}${secondsElapsed} seconds elapsed.`)
+		console.info(`${prefix}${secondsElapsed} seconds elapsed.\n`)
 		this._timeMs = 0;
 	}
 

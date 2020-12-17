@@ -67,18 +67,18 @@ async function indexMoviesPopular() {
 				processedCounts.indexed++;
 				return esClient.request('index', { index, id: movie.id, body: movie });
 			}
-		}));
 
-		if (debug) {
-			debugConsole.clearLog('Main');
-			debugConsole.addLog('Main', `Found ${processedCounts.found} movies`);
-			debugConsole.addLog('Main', `Indexed ${processedCounts.indexed} movies`);
-			progressLogger.setProcessed(processedCounts.found + processedCounts.indexed);
-			const progressBar = progressLogger.getProgressBar();
-			const percentComplete = progressLogger.getPercentComplete();
-			const eta = progressLogger.getEta();
-			debugConsole.addLog('Main', `${progressBar} ${percentComplete}% ETA: ${eta}`);
-		}
+			if (debug) {
+				debugConsole.clearLog('Main');
+				debugConsole.addLog('Main', `Found ${processedCounts.found} movies`);
+				debugConsole.addLog('Main', `Indexed ${processedCounts.indexed} movies`);
+				progressLogger.setProcessed(processedCounts.found + processedCounts.indexed);
+				const progressBar = progressLogger.getProgressBar();
+				const percentComplete = progressLogger.getPercentComplete();
+				const eta = progressLogger.getEta();
+				debugConsole.addLog('Main', `${progressBar} ${percentComplete}% ETA: ${eta}`);
+			}
+		}));
 	}
 }
 
