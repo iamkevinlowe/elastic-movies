@@ -14,6 +14,11 @@ class Elasticsearch {
 	 */
 	constructor(config = {}) {
 		this._client = new Client({ node: ES_HOST });
+		this._client.ping({}, error => {
+			if (error) {
+				console.warn('Failed to connect to Elasticsearch', error);
+			}
+		});
 		this._config = config;
 		this._reporter = new Reporter(this.constructor.name);
 	}

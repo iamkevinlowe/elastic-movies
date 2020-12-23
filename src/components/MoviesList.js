@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
 
@@ -67,14 +68,18 @@ function MoviesList() {
 
 			<div className="row row-cols-4 g-4 mt-1">
 				{movies.map(movie => (
-					<div className="col" key={movie.id}>
+					<Link
+						className="col" key={movie.id}
+						to={{
+							pathname: `/movies/${movie.id}`,
+							movie }}>
 						<div className="card">
-							<img src={movie.poster_path} alt={`${movie.title} Poster`} className="card-img-top"/>
+							<img src={movie.poster_path} alt={`${movie.title} Poster`} className="card-img-top" />
 							<div className="card-body">
 								<h5 className="card-title">{movie.title}</h5>
 							</div>
 						</div>
-					</div>
+					</Link>
 				))}
 			</div>
 		</div>

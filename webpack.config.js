@@ -10,6 +10,9 @@ module.exports = env => {
 	}
 
 	return {
+		output: {
+			publicPath: '/'
+		},
 		module: {
 			rules: [
 				{
