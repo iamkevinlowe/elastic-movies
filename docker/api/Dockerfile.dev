@@ -3,6 +3,6 @@ WORKDIR /usr/src/api
 COPY package*.json ./
 RUN npm install
 # RUN npm ci --only=production
-COPY . .
+COPY server server
 EXPOSE 8080
 CMD ["npm", "run", "api:dev"]
