@@ -24,7 +24,7 @@ services:
         environment:
             - NODE_ENV=development
         volumes: # For webpack dev server to use our local files
-            - ./..:/usr/src/app
+            - ../src:/usr/src/app/src
         ports:
             - '3000:3000' # For docker to now where to redirect HMR queries
 
@@ -39,9 +39,11 @@ services:
             - TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI
             - NODE_ENV=development
         volumes:
-            - ./..:/usr/src/api
+            - ../server:/usr/src/api/server
         ports:
             - '8080:8080'
+        depends_on:
+            - elasticsearch
 
     elasticsearch:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
@@ -50,9 +52,9 @@ services:
             - discovery.type=single-node
             - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
         volumes:
-            - /Users/kevin/Downloads/elasticsearch-7.9.1/data:/usr/share/elasticsearch/data
+            - ../data:/usr/share/elasticsearch/data
         expose:
             - 9200
         ports:
             - '9200:9200'
-            - '9300:9200'
+            - '9300:9300'

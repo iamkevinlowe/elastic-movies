@@ -1,0 +1,9 @@
+.DS_Store
+.git
+.gitignore
+.idea
+JetBrains.Dockerfile
+data
+dist
+docker
+node_modules
