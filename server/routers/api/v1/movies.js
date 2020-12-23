@@ -19,4 +19,9 @@ router.get('/', async (req, res) => {
 	res.json({ body: movies, total: response.total.value });
 });
 
+router.get('/:id', async (req, res) => {
+	const response = await Movie.fetchById({ index, id: req.params.id });
+	res.json({ body: response._source });
+});
+
 module.exports = router;

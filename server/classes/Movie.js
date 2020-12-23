@@ -215,6 +215,16 @@ class Movie {
 		}
 	}
 
+	static async fetchById(options) {
+		const response = await esClient.request('get', options);
+
+		if (response) {
+			response._source = await this._replaceImagePaths(response._source);
+		}
+
+		return response;
+	}
+
 	/**
 	 * Fetches additional details for the movie
 	 *
