@@ -1,15 +1,24 @@
 {
 	"name": "elastic-movies",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Movies directory using Elasticsearch",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/iamkevinlowe/elastic-movies.git"
+	},
 	"main": "server/index.js",
 	"scripts": {
+		"build:dev": "docker-compose -f docker/docker-compose.dev.yml build",
+		"up:dev": "docker-compose -f docker/docker-compose.dev.yml up",
+		"down:dev": "docker-compose -f docker/docker-compose.dev.yml down",
+		"uninstall:dev": "docker-compose -f docker/docker-compose.dev.yml down --rmi all",
 		"job:index:start": "node server/jobs/indexPopularMovies.js",
 		"job:index:debug": "DEBUG=true node server/jobs/indexPopularMovies.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"app:server": "node server/index.js",
-		"app:dev": "webpack serve --history-api-fallback --devtool eval-source-map --open 'Google Chrome'",
-		"app:build:dev": "webpack --mode development",
+		"api:dev": "nodemon server/index.js",
+		"api:prod": "node server/index.js",
+		"app:dev": "webpack serve --env NODE_ENV=development --history-api-fallback --devtool source-map",
+		"app:build:dev": "webpack --config ./webpack.config.js --mode development",
 		"app:build:prod": "webpack --mode production"
 	},
 	"keywords": [],
@@ -18,7 +27,6 @@
 	"dependencies": {
 		"@elastic/elasticsearch": "^7.9.1",
 		"body-parser": "^1.19.0",
-		"cors": "^2.8.5",
 		"express": "^4.17.1"
 	},
 	"devDependencies": {
@@ -31,6 +39,7 @@
 		"core-js": "^3.8.1",
 		"css-loader": "^5.0.1",
 		"html-webpack-plugin": "^4.5.0",
+		"nodemon": "^2.0.6",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0",

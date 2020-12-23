@@ -65,12 +65,18 @@ function MoviesList() {
 				</div>
 			</form>
 
-			{movies.map(movie => (
-				<div className="mb-2">
-					<img src={movie.poster_path} alt="Poster" className="img-thumbnail"/>
-					{movie.title}
-				</div>
-			))}
+			<div className="row row-cols-4 g-4 mt-1">
+				{movies.map(movie => (
+					<div className="col" key={movie.id}>
+						<div className="card">
+							<img src={movie.poster_path} alt={`${movie.title} Poster`} className="card-img-top"/>
+							<div className="card-body">
+								<h5 className="card-title">{movie.title}</h5>
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
 		</div>
 	);
 }

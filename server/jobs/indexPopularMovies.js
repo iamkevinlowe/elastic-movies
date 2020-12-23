@@ -64,8 +64,8 @@ async function indexMoviesPopular() {
 				processedCounts.found++;
 			} else {
 				await movie.fetchAdditionalDetails();
+				await esClient.request('index', { index, id: movie.id, body: movie });
 				processedCounts.indexed++;
-				return esClient.request('index', { index, id: movie.id, body: movie });
 			}
 
 			if (debug) {
