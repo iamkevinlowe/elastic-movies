@@ -1,4 +1,4 @@
-const ENDPOINT = 'http://localhost:3000/api/v1/movies/';
+const ENDPOINT = `${process.env.API_HOST}v1/movies/`;
 
 export async function getMovies(params = {}) {
 	const url = new URL(ENDPOINT);

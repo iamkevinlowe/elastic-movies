@@ -1,27 +1,23 @@
 const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+const bodyParser = require('body-parser');
+const path = require('path');
+const routerApiV1 = require('./routers/api/v1');
 
-/** Cors */
-const cors = require('cors');
-const corsOptions = {
-	origin: 'http://localhost:8080',
-	methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-	optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+const app = express();
+const port = process.env.PORT || 8080;
 
 /** Body Parser */
-const bodyParser = require('body-parser');
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
-// parse application/json
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false })); // application/x-www-form-urlencoded
+app.use(bodyParser.json()); // application/json
+
+/** Static Files */
+app.use(express.static(path.join(__dirname, '../dist')));
 
 /** Routing */
-const routerApiV1 = require('./routers/api/v1');
-// api v1 router
-app.use('/api/v1', routerApiV1);
+app.use('/v1', routerApiV1); // api v1 router
+app.use('/', (req, res) => { // all non-matching routes
+	res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
 
 app.listen(port, () => {
 	console.log(`Elastic Movies listening at http://localhost:${port}`);

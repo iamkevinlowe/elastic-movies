@@ -7,7 +7,7 @@ const Reporter = require('./Reporter');
 const ApiResponse = require('./ApiResponse');
 
 const API_HOST = 'api.themoviedb.org';
-const API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI';
+const API_TOKEN = process.env.TMDB_API_TOKEN;
 const API_PAGE_LIMIT = 1000;
 
 class TheMovieDb {

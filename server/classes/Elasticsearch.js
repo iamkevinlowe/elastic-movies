@@ -4,7 +4,7 @@ const { Client } = require('@elastic/elasticsearch');
 const debugConsole = require('./DebugConsole');
 const Reporter = require('./Reporter');
 
-const ES_HOST = 'http://localhost:9200';
+const ES_HOST = process.env.ES_HOST;
 
 class Elasticsearch {
 	/**

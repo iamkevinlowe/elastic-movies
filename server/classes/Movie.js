@@ -200,14 +200,19 @@ class Movie {
 	 * @returns {Promise<{}>}
 	 */
 	static async fetchSearchResult(options = {}, body = {}) {
-		const { hits = {} } = await esClient.request('search', { ...options, body });
+		const response = await esClient.request('search', { ...options, body });
 
-		hits.hits = await Promise.all(hits.hits.map(async item => {
-			item._source = await this._replaceImagePaths(item._source);
-			return item;
-		}));
+		if (response) {
+			const { hits = {} } = response;
+			hits.hits = await Promise.all(hits.hits.map(async item => {
+				item._source = await this._replaceImagePaths(item._source);
+				return item;
+			}));
 
-		return hits;
+			return hits;
+		} else {
+			return { hits: [], total: { value: 0 } };
+		}
 	}
 
 	/**
@@ -372,7 +377,7 @@ class Movie {
 			}
 		}
 		if (item.poster_path) {
-			item.poster_path = `${imageSizes.poster[0]}${item.poster_path}`;
+			item.poster_path = `${imageSizes.poster[1]}${item.poster_path}`;
 		}
 		if (item.production_companies) {
 			item.production_companies.map(item => {
