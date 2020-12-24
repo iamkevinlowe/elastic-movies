@@ -1,0 +1,24 @@
+{
+	"name": "elastic-movies-api",
+	"version": "1.0.0",
+	"description": "Movies directory using Elasticsearch",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"start:dev": "nodemon index.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"job:index:start": "ES_HOST=http://localhost:9200 TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI node api/jobs/indexPopularMovies.js",
+		"job:index:debug": "DEBUG=true ES_HOST=http://localhost:9200 TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI node api/jobs/indexPopularMovies.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@elastic/elasticsearch": "^7.9.1",
+		"body-parser": "^1.19.0",
+		"express": "^4.17.1"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.6"
+	}
+}
