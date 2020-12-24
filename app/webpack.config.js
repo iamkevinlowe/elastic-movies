@@ -10,6 +10,7 @@ module.exports = env => {
 	}
 
 	return {
+		entry: './index.js',
 		output: {
 			publicPath: '/'
 		},
@@ -35,7 +36,7 @@ module.exports = env => {
 		},
 		plugins: [
 			new HtmlWebpackPlugin({
-				template: path.resolve(__dirname, 'src', 'index.html')
+				template: path.resolve(__dirname, 'index.html')
 			}),
 			new webpack.EnvironmentPlugin({
 				API_HOST

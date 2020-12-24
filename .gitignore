@@ -1,7 +1,6 @@
+.DS_Store
 .idea/
 node_modules/
 dist/
-JetBrains.Dockerfile
-data/*
-!data/.gitkeep
-.DS_Store
+elasticsearch/data/*
+!elasticsearch/data/.gitkeep

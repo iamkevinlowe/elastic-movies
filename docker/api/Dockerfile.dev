@@ -1,8 +1,8 @@
 FROM node:14
 WORKDIR /usr/src/api
-COPY package*.json ./
+COPY api/package*.json ./
 RUN npm install
 # RUN npm ci --only=production
-COPY server server
+COPY api .
 EXPOSE 8080
-CMD ["npm", "run", "api:dev"]
+CMD ["npm", "run", "start:dev"]
