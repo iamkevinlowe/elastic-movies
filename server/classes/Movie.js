@@ -398,7 +398,7 @@ class Movie {
 			});
 		}
 		if (item.recommendations) {
-			item.recommendations = item.recommendations.map(item => this._replaceImagePaths(item));
+			item.recommendations = await Promise.all(item.recommendations.map(item => this._replaceImagePaths(item)));
 		}
 		if (item.reviews) {
 			item.reviews = item.reviews.map(item => {
@@ -409,7 +409,7 @@ class Movie {
 			});
 		}
 		if (item.similar) {
-			item.similar = item.similar.map(item => this._replaceImagePaths(item));
+			item.similar = await Promise.all(item.similar.map(item => this._replaceImagePaths(item)));
 		}
 
 		return item;
