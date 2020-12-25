@@ -1,0 +1,8 @@
+FROM node:14
+WORKDIR /usr/src/worker
+COPY api/package*.json ./
+RUN npm install
+# RUN npm ci --only=production
+COPY api .
+EXPOSE 9000
+CMD ["npm", "run", "worker:dev"]

@@ -1,33 +1,40 @@
-'use strict'
-
 const { Client } = require('@elastic/elasticsearch');
-const debugConsole = require('./DebugConsole');
-const Reporter = require('./Reporter');
 
 const ES_HOST = process.env.ES_HOST;
 
 class Elasticsearch {
 	/**
 	 * Creates an instance of Elasticsearch
-	 *
-	 * @param {Object} [config={}]
 	 */
-	constructor(config = {}) {
+	constructor() {
 		this._client = new Client({ node: ES_HOST });
-		this._client.ping({}, error => {
-			if (error) {
-				console.warn('Failed to connect to Elasticsearch', error);
-			}
-		});
-		this._config = config;
-		this._reporter = new Reporter(this.constructor.name);
 	}
 
 	/**
-	 * Reports what happened
+	 * Pings Elasticsearch for connection
+	 *
+	 * @param {Number} timeout Time in milliseconds to ping Elasticsearch
+	 * @returns {Promise<boolean>}
+	 * @async
 	 */
-	report() {
-		this._reporter.report();
+	async ping(timeout = 5000) {
+		return new Promise(resolve => {
+			const intervalTime = 1000;
+			const interval = setInterval(() => {
+				if (timeout <= 0) {
+					clearInterval(interval);
+					resolve(false);
+				} else {
+					timeout -= intervalTime;
+					this._client.ping({}, error => {
+						if (!error) {
+							clearInterval(interval);
+							resolve(true);
+						}
+					});
+				}
+			}, intervalTime);
+		});
 	}
 
 	/**
@@ -90,13 +97,6 @@ class Elasticsearch {
 	 * @returns {Promise<*>}
 	 */
 	async request(endpoint, params) {
-		if (this._config.debug) {
-			const { body, ...debugParams } = params;
-			debugConsole.addLog(this.constructor.name, `Requesting ${endpoint}`, debugParams);
-		}
-
-		const timeId = this._reporter.time();
-
 		const [namespace, verb] = endpoint.split('.');
 
 		let method = this._client[namespace];
@@ -105,20 +105,11 @@ class Elasticsearch {
 		}
 
 		if (typeof method !== 'function') {
-			this._reporter.time(timeId);
 			throw new Error(`Invalid endpoint: ${endpoint}`);
 		}
 
-		try {
-			const response = await method.call(this._client, params, { ignore: [404] });
-
-			this._reporter.time(timeId);
-			return response.body;
-		} catch (e) {
-			this._reporter.addError(e.meta && e.meta.body || e);
-		}
-
-		this._reporter.time(timeId);
+		const response = await method.call(this._client, params, { ignore: [404] });
+		return response.body;
 	}
 }
 

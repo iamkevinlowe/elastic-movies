@@ -137,28 +137,15 @@ class Movie {
 	}
 
 	/**
-	 * Returns the ES field mapping for Movies
+	 * Fetch movie by the given ID
 	 *
-	 * @returns {Object}
+	 * @param {Object} [options={}]
+	 * @returns {Promise<{Object}>}
 	 */
-	static getIndexMapping() {
-		return {
-			properties: {
-				...indexMappingMovies,
-				...indexMappingMoviesDetails,
-				credits: {
-					properties: {
-						cast: { properties: indexMappingCast },
-						crew: { properties: indexMappingCrew }
-					}
-				},
-				keywords: { properties: indexMappingKeywords },
-				recommendations: { properties: indexMappingMovies },
-				reviews: { properties: indexMappingReviews },
-				similar: { properties: indexMappingMovies },
-				videos: { properties: indexMappingVideos }
-			}
-		};
+	static async fetchById(options = {}) {
+		const response = await esClient.request('get', options);
+
+		return await this._replaceImagePaths(response._source);
 	}
 
 	/**
@@ -197,32 +184,18 @@ class Movie {
 	 *
 	 * @param {Object} [options={}]
 	 * @param {Object} [body={}]
-	 * @returns {Promise<{}>}
+	 * @returns {Promise<{hits: [], total: {value: number}}>}
 	 */
 	static async fetchSearchResult(options = {}, body = {}) {
 		const response = await esClient.request('search', { ...options, body });
 
-		if (response) {
-			const { hits = {} } = response;
-			hits.hits = await Promise.all(hits.hits.map(async item => {
-				item._source = await this._replaceImagePaths(item._source);
-				return item;
-			}));
+		const { hits = {} } = response;
+		hits.hits = await Promise.all(hits.hits.map(async item => {
+			item._source = await this._replaceImagePaths(item._source);
+			return item;
+		}));
 
-			return hits;
-		} else {
-			return { hits: [], total: { value: 0 } };
-		}
-	}
-
-	static async fetchById(options) {
-		const response = await esClient.request('get', options);
-
-		if (response) {
-			response._source = await this._replaceImagePaths(response._source);
-		}
-
-		return response;
+		return hits;
 	}
 
 	/**
@@ -292,24 +265,28 @@ class Movie {
 	}
 
 	/**
-	 * Fetches the full list of results from a paginated result set
+	 * Returns the ES field mapping for Movies
 	 *
-	 * @param {String} endpoint
-	 * @param {Number} [page=1]
-	 * @returns {Promise<Object[]>}
-	 * @private
-	 * @async
+	 * @returns {{properties: {original_language: {type: string}, keywords: {properties: {name: {type: string}, id: {type: string}}}, imdb_id: {type: string}, videos: {properties: {site: {type: string}, size: {type: string}, iso_3166_1: {type: string}, name: {type: string}, id: {type: string}, type: {type: string}, iso_639_1: {type: string}, key: {type: string}}}, video: {type: string}, title: {type: string}, recommendations: {properties: {overview: {type: string}, original_language: {type: string}, original_title: {type: string}, video: {type: string}, title: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, backdrop_path: {type: string}, release_date: {ignore_malformed: boolean, type: string}, popularity: {type: string}, vote_average: {type: string}, id: {type: string}, vote_count: {type: string}}}, backdrop_path: {type: string}, revenue: {type: string}, reviews: {properties: {author_details: {properties: {avatar_path: {type: string}, name: {type: string}, rating: {type: string}, username: {type: string}}}, updated_at: {ignore_malformed: boolean, type: string}, author: {type: string}, created_at: {ignore_malformed: boolean, type: string}, id: {type: string}, content: {type: string}, url: {type: string}}}, credits: {properties: {cast: {properties: {cast_id: {type: string}, character: {type: string}, gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, order: {type: string}}}, crew: {properties: {gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, department: {type: string}, job: {type: string}}}}}, genres: {properties: {name: {type: string}, id: {type: string}}}, popularity: {type: string}, production_countries: {properties: {iso_3166_1: {type: string}, name: {type: string}}}, id: {type: string}, vote_count: {type: string}, budget: {type: string}, overview: {type: string}, similar: {properties: {overview: {type: string}, original_language: {type: string}, original_title: {type: string}, video: {type: string}, title: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, backdrop_path: {type: string}, release_date: {ignore_malformed: boolean, type: string}, popularity: {type: string}, vote_average: {type: string}, id: {type: string}, vote_count: {type: string}}}, original_title: {type: string}, runtime: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, spoken_languages: {properties: {name: {type: string}, iso_639_1: {type: string}, english_name: {type: string}}}, release_date: {ignore_malformed: boolean, type: string}, production_companies: {properties: {logo_path: {type: string}, name: {type: string}, id: {type: string}, origin_country: {type: string}}}, vote_average: {type: string}, belongs_to_collection: {properties: {backdrop_path: {type: string}, name: {type: string}, id: {type: string}, poster_path: {type: string}}}, tagline: {type: string}, homepage: {type: string}, status: {type: string}}}}
 	 */
-	static async _fetchPaginatedResults(endpoint, page = 1) {
-		const paginatedResponse = await tmdbClient.request(endpoint, { page });
-		const results = paginatedResponse.getResponse();
-		let items;
-
-		while (items = await paginatedResponse.getNextResponse()) {
-			Array.prototype.push.apply(results, items);
-		}
-
-		return results;
+	static getIndexMapping() {
+		return {
+			properties: {
+				...indexMappingMovies,
+				...indexMappingMoviesDetails,
+				credits: {
+					properties: {
+						cast: { properties: indexMappingCast },
+						crew: { properties: indexMappingCrew }
+					}
+				},
+				keywords: { properties: indexMappingKeywords },
+				recommendations: { properties: indexMappingMovies },
+				reviews: { properties: indexMappingReviews },
+				similar: { properties: indexMappingMovies },
+				videos: { properties: indexMappingVideos }
+			}
+		};
 	}
 
 	/**
@@ -345,6 +322,27 @@ class Movie {
 		}
 
 		return this._imageSizes;
+	}
+
+	/**
+	 * Fetches the full list of results from a paginated result set
+	 *
+	 * @param {String} endpoint
+	 * @param {Number} [page=1]
+	 * @returns {Promise<Object[]>}
+	 * @private
+	 * @async
+	 */
+	static async _fetchPaginatedResults(endpoint, page = 1) {
+		const paginatedResponse = await tmdbClient.request(endpoint, { page });
+		const results = paginatedResponse.getResponse();
+		let items;
+
+		while (items = await paginatedResponse.getNextResponse()) {
+			Array.prototype.push.apply(results, items);
+		}
+
+		return results;
 	}
 
 	/**
@@ -432,6 +430,6 @@ class Movie {
 }
 
 Movie._nextPopularResponse = null;
-Movie.MAX_POPULAR_MOVIES = 10000;
+Movie.INDEX = 'movies';
 
 module.exports = Movie;

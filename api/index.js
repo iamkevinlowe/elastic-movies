@@ -13,5 +13,5 @@ app.use(bodyParser.json()); // application/json
 app.use('/v1', routerApiV1); // api v1 router
 
 app.listen(port, () => {
-	console.log(`Elastic Movies listening at http://localhost:${port}`);
+	console.log(`Elastic Movies API listening at http://localhost:${port}`);
 });
