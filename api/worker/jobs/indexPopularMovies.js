@@ -1,6 +1,8 @@
 const Movie = require('../../classes/Movie');
-const esClient = require('../../classes/Elasticsearch');
+const Elasticsearch = require('../../classes/Elasticsearch');
 const { movieIndexQueue } = require('../queues');
+
+const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 module.exports = async () => {
 	const isConnected = await esClient.ping();
@@ -9,18 +11,27 @@ module.exports = async () => {
 		return;
 	}
 
-	const indexExists = await esClient.request('indices.exists', { index: Movie.INDEX });
-	if (!indexExists) {
-		await esClient.request('indices.create', { index: Movie.INDEX });
-		await esClient.request('indices.putMapping', {
-			index: Movie.INDEX,
-			body: Movie.getIndexMapping()
-		});
+	try {
+		const indexExists = await esClient.request('indices.exists', { index: Movie.INDEX });
+		if (!indexExists) {
+			await esClient.request('indices.create', { index: Movie.INDEX });
+			await esClient.request('indices.putMapping', {
+				index: Movie.INDEX,
+				body: Movie.getIndexMapping()
+			});
+		}
+	} catch (e) {
+		console.error('Failed creating index', e);
+		return;
 	}
 
 	let movies;
 
-	while (movies = await Movie.fetchPopularBatched()) {
-		movies.forEach(movie => movieIndexQueue.add(movie));
+	try {
+		while (movies = await Movie.fetchPopularBatched()) {
+			movies.forEach(movie => movieIndexQueue.add(movie));
+		}
+	} catch (e) {
+		console.error('Failed fetching popular movies', e);
 	}
 };

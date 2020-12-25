@@ -1,13 +1,11 @@
 const { Client } = require('@elastic/elasticsearch');
 
-const ES_HOST = process.env.ES_HOST;
-
 class Elasticsearch {
 	/**
 	 * Creates an instance of Elasticsearch
 	 */
-	constructor() {
-		this._client = new Client({ node: ES_HOST });
+	constructor(options = {}) {
+		this._client = new Client(options);
 	}
 
 	/**
@@ -113,4 +111,4 @@ class Elasticsearch {
 	}
 }
 
-module.exports = new Elasticsearch({ debug: process.env.DEBUG || false });
+module.exports = Elasticsearch;
