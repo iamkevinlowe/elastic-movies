@@ -47,6 +47,20 @@ function Movie(props) {
 						</div>
 					</div>
 
+					{movie.keywords && movie.keywords.length && <dl className="row justify-content-center">
+						<dt className="col-2">Keywords</dt>
+						<dd className="col-8">
+							<ul className="list-inline">
+								{movie.keywords.map(item => (
+									<li
+										className="list-inline-item"
+										key={item.id}>
+										{item.name}
+									</li>
+								))}
+							</ul>
+						</dd>
+					</dl>}
 					{movie.popularity && <dl className="row justify-content-center">
 						<dt className="col-2">Popularity</dt>
 						<dd className="col-8">{movie.popularity}</dd>
@@ -59,19 +73,9 @@ function Movie(props) {
 						<dt className="col-2">Vote Count</dt>
 						<dd className="col-8">{movie.vote_count}</dd>
 					</dl>}
-					{movie.belongs_to_collection && movie.belongs_to_collection.length && <dl className="row justify-content-center">
+					{movie.belongs_to_collection && <dl className="row justify-content-center">
 						<dt className="col-2">Belongs to Collection</dt>
-						<dd className="col-8">
-							<ul className="list-inline">
-								{movie.belongs_to_collection.map(item => (
-									<li
-										className="list-inline-item"
-										key={item.id}>
-										{item.name}
-									</li>
-								))}
-							</ul>
-						</dd>
+						<dd className="col-8">{movie.belongs_to_collection.name}</dd>
 					</dl>}
 					{movie.budget && <dl className="row justify-content-center">
 						<dt className="col-2">Budget</dt>
