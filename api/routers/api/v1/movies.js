@@ -44,15 +44,8 @@ function filterFields(item) {
 	delete item.original_title;
 	delete item.video;
 	if (item.belongs_to_collection) {
-		if (Array.isArray(item.belongs_to_collection)) {
-			item.belongs_to_collection.forEach(belongsToCollection => {
-				delete belongsToCollection.backdrop_path;
-				delete belongsToCollection.poster_path;
-			});
-		} else {
-			delete item.belongs_to_collection.backdrop_path;
-			delete item.belongs_to_collection.poster_path;
-		}
+		delete item.belongs_to_collection.backdrop_path;
+		delete item.belongs_to_collection.poster_path;
 	}
 	delete item.imdb_id;
 	if (item.production_companies) {
