@@ -1,6 +1,8 @@
 const ApiResponse = require('./ApiResponse');
 const tmdbClient = require('./TheMovieDb');
-const esClient = require('./Elasticsearch');
+const Elasticsearch = require('./Elasticsearch');
+
+const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 const indexMappingMovies = {
 	backdrop_path: { type: 'text' },
@@ -327,8 +329,8 @@ class Movie {
 	/**
 	 * Fetches the full list of results from a paginated result set
 	 *
-	 * @param {String} endpoint
-	 * @param {Number} [page=1]
+	 * @param {string} endpoint
+	 * @param {number} [page=1]
 	 * @returns {Promise<Object[]>}
 	 * @private
 	 * @async

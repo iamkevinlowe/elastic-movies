@@ -35,7 +35,7 @@ services:
         image: elastic-movies_api
         container_name: elastic-movies_api
         environment:
-            - ES_HOST=http://elasticsearch:9200/
+            - ES_HOST=http://es01:9200/
             - TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI
             - NODE_ENV=development
         volumes:
@@ -43,7 +43,9 @@ services:
         ports:
             - '8080:8080'
         depends_on:
-            - elasticsearch
+            - es01
+            - es02
+            - es03
 
     worker:
         build:
@@ -52,7 +54,7 @@ services:
         image: elastic-movies_worker
         container_name: elastic-movies_worker
         environment:
-            - ES_HOST=http://elasticsearch:9200/
+            - ES_HOST=http://es01:9200/
             - TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI
             - NODE_ENV=development
         volumes:
@@ -61,26 +63,13 @@ services:
             - '9000:9000'
         depends_on:
             - redis
-            - elasticsearch
-        networks:
-            - elastic
-
-    elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-        container_name: elastic-movies_elasticsearch
-        environment:
-            - discovery.type=single-node
-            - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-        volumes:
-            - ../elasticsearch/data:/usr/share/elasticsearch/data
-        ports:
-            - '9200:9200'
-        networks:
-            - elastic
+            - es01
+            - es02
+            - es03
 
     es01:
         image: elasticsearch:7.10.1
-        container_name: elastic-movies_es_01
+        container_name: elastic-movies_es01
         environment:
             - node.name=es01
             - cluster.name=es-docker-cluster
@@ -94,16 +83,12 @@ services:
                 hard: -1
         volumes:
             - data01:/usr/share/elasticsearch/data
-        expose:
-            - 9201
         ports:
-            - '9201:9200'
-        networks:
-            - elastic
+            - '9200:9200'
 
     es02:
         image: elasticsearch:7.10.1
-        container_name: elastic-movies_es_02
+        container_name: elastic-movies_es02
         environment:
             - node.name=es02
             - cluster.name=es-docker-cluster
@@ -117,12 +102,10 @@ services:
                 hard: -1
         volumes:
             - data02:/usr/share/elasticsearch/data
-        networks:
-            - elastic
 
     es03:
         image: elasticsearch:7.10.1
-        container_name: elastic-movies_es_03
+        container_name: elastic-movies_es03
         environment:
             - node.name=es03
             - cluster.name=es-docker-cluster
@@ -136,14 +119,15 @@ services:
                 hard: -1
         volumes:
             - data03:/usr/share/elasticsearch/data
-        networks:
-            - elastic
 
     redis:
         image: redis:latest
+        container_name: elastic-movies_redis
         restart: on-failure
         ports:
             - '6379:6379'
+        volumes:
+            - dataRedis:/data
 
 volumes:
     data01:
@@ -152,7 +136,5 @@ volumes:
         driver: local
     data03:
         driver: local
-
-networks:
-    elastic:
-        driver: bridge
+    dataRedis:
+        driver: local

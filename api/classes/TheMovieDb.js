@@ -18,7 +18,7 @@ class TheMovieDb {
 	 * [API Docs]{@link https://developers.themoviedb.org/3/getting-started/introduction}
 	 *
 	 * @async
-	 * @param {String} endpoint
+	 * @param {string} endpoint
 	 * @param {Object} [params={}]
 	 * @returns {Promise<ApiResponse>}
 	 */

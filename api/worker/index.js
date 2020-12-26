@@ -18,7 +18,6 @@ setQueues([
 	new BullAdapter(movieIndexQueue)
 ]);
 
-
 app.listen(port, () => {
 	console.log(`Elastic Movies Worker listening at http://localhost:${port}`);
 });
