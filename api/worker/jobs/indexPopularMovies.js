@@ -5,9 +5,8 @@ const { movieIndexQueue } = require('../queues');
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 module.exports = async () => {
-	const isConnected = await esClient.ping();
-	if (!isConnected) {
-		console.warn('Failed to connect to Elasticsearch. Exiting Job.');
+	if (!await esClient.ping()) {
+		console.warn('Failed to establish connection to Elasticsearch. Exiting Job.');
 		return;
 	}
 
@@ -28,6 +27,7 @@ module.exports = async () => {
 	let movies;
 
 	try {
+		await movieIndexQueue.empty();
 		while (movies = await Movie.fetchPopularBatched()) {
 			movies.forEach(movie => movieIndexQueue.add(movie));
 		}

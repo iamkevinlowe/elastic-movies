@@ -70,13 +70,14 @@ services:
     es01:
         image: elasticsearch:7.10.1
         container_name: elastic-movies_es01
+        restart: on-failure
         environment:
             - node.name=es01
             - cluster.name=es-docker-cluster
             - discovery.seed_hosts=es02,es03
             - cluster.initial_master_nodes=es01,es02,es03
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
         ulimits:
             memlock:
                 soft: -1
@@ -89,13 +90,14 @@ services:
     es02:
         image: elasticsearch:7.10.1
         container_name: elastic-movies_es02
+        restart: on-failure
         environment:
             - node.name=es02
             - cluster.name=es-docker-cluster
             - discovery.seed_hosts=es01,es03
             - cluster.initial_master_nodes=es01,es02,es03
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
         ulimits:
             memlock:
                 soft: -1
@@ -106,13 +108,14 @@ services:
     es03:
         image: elasticsearch:7.10.1
         container_name: elastic-movies_es03
+        restart: on-failure
         environment:
             - node.name=es03
             - cluster.name=es-docker-cluster
             - discovery.seed_hosts=es01,es02
             - cluster.initial_master_nodes=es01,es02,es03
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
         ulimits:
             memlock:
                 soft: -1
