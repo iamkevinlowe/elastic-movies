@@ -2,8 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Movie = require('../../../classes/Movie');
 
+const sourceFields = [
+	'backdrop_path', 'id', 'overview', 'popularity', 'poster_path', 'release_date', 'title', 'vote_average',
+	'vote_count', 'belongs_to_collection.id', 'belongs_to_collection.name', 'budget', 'genres.id', 'genres.name',
+	'homepage', 'production_companies.id', 'production_companies.name', 'production_countries.iso_3166_1',
+	'production_countries.name', 'revenue', 'runtime', 'spoken_languages', 'status', 'tagline', 'keywords'
+];
+
 router.get('/', async (req, res) => {
-	const options = { index: Movie.INDEX };
+	const options = { index: Movie.INDEX, _source_includes: sourceFields };
 	const body = {};
 
 	if (req.query.query) {
@@ -14,7 +21,7 @@ router.get('/', async (req, res) => {
 
 	try {
 		const response = await Movie.fetchSearchResult(options, body);
-		const movies = response.hits.map(item => filterFields(item._source));
+		const movies = response.hits.map(item => item._source);
 		res.json({ body: movies, total: response.total.value });
 	} catch (e) {
 		console.error(e.message);
@@ -24,48 +31,12 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
 	try {
-		const response = await Movie.fetchById({ index: Movie.INDEX, id: req.params.id });
-		res.json({ body: filterFields(response) });
+		const response = await Movie.fetchById({ index: Movie.INDEX, id: req.params.id, _source_includes: sourceFields });
+		res.json({ body: response });
 	} catch (e) {
 		console.error(e.message);
 		res.status(500).json(e);
 	}
 });
-
-/**
- * Filters out extra fields
- *
- * @param {Object} item
- * @returns {Object}
- */
-function filterFields(item) {
-	delete item.genre_ids;
-	delete item.original_language;
-	delete item.original_title;
-	delete item.video;
-	if (item.belongs_to_collection) {
-		delete item.belongs_to_collection.backdrop_path;
-		delete item.belongs_to_collection.poster_path;
-	}
-	delete item.imdb_id;
-	if (item.production_companies) {
-		if (Array.isArray(item.production_companies)) {
-			item.production_companies.forEach(productionCompany => {
-				delete productionCompany.logo_path;
-				delete productionCompany.origin_country;
-			});
-		} else {
-			delete item.production_companies.logo_path;
-			delete item.production_companies.origin_country;
-		}
-	}
-	delete item.credits;
-	delete item.recommendations;
-	delete item.reviews;
-	delete item.similar;
-	delete item.videos;
-
-	return item;
-}
 
 module.exports = router;
