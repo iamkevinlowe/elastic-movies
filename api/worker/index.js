@@ -1,7 +1,7 @@
 const express = require('express');
 const { router, setQueues, BullAdapter } = require('bull-board');
 
-const { movieIndexQueue } = require('./queues');
+const { movieIndexQueue, enableProcessing } = require('./queues');
 const indexPopularMovies = require('./jobs/indexPopularMovies');
 
 const port = 9000;
@@ -17,6 +17,8 @@ app.post('/indexPopularMovies', (req, res) => {
 setQueues([
 	new BullAdapter(movieIndexQueue)
 ]);
+
+enableProcessing(movieIndexQueue);
 
 app.listen(port, () => {
 	console.log(`Elastic Movies Worker listening at http://localhost:${port}`);
