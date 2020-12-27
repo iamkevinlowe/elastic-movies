@@ -1,8 +1,10 @@
 const ApiResponse = require('./ApiResponse');
 const tmdbClient = require('./TheMovieDb');
 const Elasticsearch = require('./Elasticsearch');
+const MovieReviews = require('./MovieReviews');
+const MovieVideos = require('./MovieVideos');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const esClient = new Elasticsearch({ node: process.env.ES_HOST || 'http://es01:9200' });
 
 const indexMappingMovies = {
 	backdrop_path: { type: 'text' },
@@ -95,38 +97,6 @@ const indexMappingKeywords = {
 	id: { type: 'integer' },
 	name: { type: 'keyword' }
 };
-const indexMappingReviews = {
-	author: { type: 'text' },
-	author_details: {
-		properties: {
-			avatar_path: { type: 'text' },
-			name: { type: 'text' },
-			rating: { type: 'byte' },
-			username: { type: 'text' }
-		}
-	},
-	content: { type: 'text' },
-	created_at: {
-		type: 'date',
-		ignore_malformed: true
-	},
-	id: { type: 'text' },
-	updated_at: {
-		type: 'date',
-		ignore_malformed: true
-	},
-	url: { type: 'text' }
-};
-const indexMappingVideos = {
-	id: { type: 'text' },
-	iso_639_1: { type: 'keyword' },
-	iso_3166_1: { type: 'keyword' },
-	key: { type: 'text' },
-	name: { type: 'text' },
-	site: { type: 'keyword' },
-	size: { type: 'short' },
-	type: { type: 'keyword' }
-};
 
 class Movie {
 	/**
@@ -145,6 +115,7 @@ class Movie {
 	 * @returns {Promise<{Object}>}
 	 */
 	static async fetchById(options = {}) {
+		options.index = this.INDEX;
 		const response = await esClient.request('get', options);
 
 		return await this._replaceImagePaths(response._source);
@@ -189,6 +160,9 @@ class Movie {
 	 * @returns {Promise<{hits: [], total: {value: number}}>}
 	 */
 	static async fetchSearchResult(options = {}, body = {}) {
+		if (!options.scroll_id) {
+			options.index = this.INDEX;
+		}
 		const response = await esClient.request(options.scroll_id ? 'scroll' : 'search', { ...options, body });
 
 		const { hits = {}, _scroll_id } = response;
@@ -247,9 +221,9 @@ class Movie {
 		crew.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingCrew));
 		keywords.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingKeywords));
 		recommendations.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingMovies));
-		reviews.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingReviews));
+		reviews.forEach(item => this.constructor._removeUnmappedProperties(item, MovieReviews.getIndexMapping().properties));
 		similar.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingMovies));
-		videos.forEach(item => this.constructor._removeUnmappedProperties(item, indexMappingVideos));
+		videos.forEach(item => this.constructor._removeUnmappedProperties(item, MovieVideos.getIndexMapping().properties));
 		this.constructor._removeUnmappedProperties(movie, indexMappingMoviesDetails);
 
 		Object.assign(this, movie, {
@@ -270,7 +244,7 @@ class Movie {
 	/**
 	 * Returns the ES field mapping for Movies
 	 *
-	 * @returns {{properties: {original_language: {type: string}, keywords: {properties: {name: {type: string}, id: {type: string}}}, imdb_id: {type: string}, videos: {properties: {site: {type: string}, size: {type: string}, iso_3166_1: {type: string}, name: {type: string}, id: {type: string}, type: {type: string}, iso_639_1: {type: string}, key: {type: string}}}, video: {type: string}, title: {type: string}, recommendations: {properties: {overview: {type: string}, original_language: {type: string}, original_title: {type: string}, video: {type: string}, title: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, backdrop_path: {type: string}, release_date: {ignore_malformed: boolean, type: string}, popularity: {type: string}, vote_average: {type: string}, id: {type: string}, vote_count: {type: string}}}, backdrop_path: {type: string}, revenue: {type: string}, reviews: {properties: {author_details: {properties: {avatar_path: {type: string}, name: {type: string}, rating: {type: string}, username: {type: string}}}, updated_at: {ignore_malformed: boolean, type: string}, author: {type: string}, created_at: {ignore_malformed: boolean, type: string}, id: {type: string}, content: {type: string}, url: {type: string}}}, credits: {properties: {cast: {properties: {cast_id: {type: string}, character: {type: string}, gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, order: {type: string}}}, crew: {properties: {gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, department: {type: string}, job: {type: string}}}}}, genres: {properties: {name: {type: string}, id: {type: string}}}, popularity: {type: string}, production_countries: {properties: {iso_3166_1: {type: string}, name: {type: string}}}, id: {type: string}, vote_count: {type: string}, budget: {type: string}, overview: {type: string}, similar: {properties: {overview: {type: string}, original_language: {type: string}, original_title: {type: string}, video: {type: string}, title: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, backdrop_path: {type: string}, release_date: {ignore_malformed: boolean, type: string}, popularity: {type: string}, vote_average: {type: string}, id: {type: string}, vote_count: {type: string}}}, original_title: {type: string}, runtime: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, spoken_languages: {properties: {name: {type: string}, iso_639_1: {type: string}, english_name: {type: string}}}, release_date: {ignore_malformed: boolean, type: string}, production_companies: {properties: {logo_path: {type: string}, name: {type: string}, id: {type: string}, origin_country: {type: string}}}, vote_average: {type: string}, belongs_to_collection: {properties: {backdrop_path: {type: string}, name: {type: string}, id: {type: string}, poster_path: {type: string}}}, tagline: {type: string}, homepage: {type: string}, status: {type: string}}}}
+	 * @returns {{properties: {original_language: {type: string}, keywords: {properties: {name: {type: string}, id: {type: string}}}, imdb_id: {type: string}, video: {type: string}, title: {type: string}, video_ids: {type: string}, backdrop_path: {type: string}, similar_ids: {type: string}, review_ids: {type: string}, revenue: {type: string}, credits: {properties: {cast: {properties: {cast_id: {type: string}, character: {type: string}, gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, order: {type: string}}}, crew: {properties: {gender: {type: string}, credit_id: {type: string}, known_for_department: {type: string}, original_name: {type: string}, popularity: {type: string}, name: {type: string}, profile_path: {type: string}, id: {type: string}, department: {type: string}, job: {type: string}}}}}, genres: {properties: {name: {type: string}, id: {type: string}}}, popularity: {type: string}, production_countries: {properties: {iso_3166_1: {type: string}, name: {type: string}}}, id: {type: string}, vote_count: {type: string}, budget: {type: string}, overview: {type: string}, original_title: {type: string}, recommendation_ids: {type: string}, runtime: {type: string}, genre_ids: {type: string}, poster_path: {type: string}, spoken_languages: {properties: {name: {type: string}, iso_639_1: {type: string}, english_name: {type: string}}}, release_date: {ignore_malformed: boolean, type: string}, production_companies: {properties: {logo_path: {type: string}, name: {type: string}, id: {type: string}, origin_country: {type: string}}}, vote_average: {type: string}, belongs_to_collection: {properties: {backdrop_path: {type: string}, name: {type: string}, id: {type: string}, poster_path: {type: string}}}, tagline: {type: string}, homepage: {type: string}, status: {type: string}}}}
 	 */
 	static getIndexMapping() {
 		return {
@@ -284,10 +258,10 @@ class Movie {
 					}
 				},
 				keywords: { properties: indexMappingKeywords },
-				recommendations: { properties: indexMappingMovies },
-				reviews: { properties: indexMappingReviews },
-				similar: { properties: indexMappingMovies },
-				videos: { properties: indexMappingVideos }
+				recommendation_ids: { type: 'integer' },
+				review_ids: { type: 'text' },
+				similar_ids: { type: 'integer' },
+				video_ids: { type: 'text' }
 			}
 		};
 	}
