@@ -7,6 +7,7 @@ function MoviesList() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [movies, setMovies] = useState([]);
+	const [scrollId, setScrollId] = useState(null);
 
 	const onSearchMoviesSubmit = async e => {
 		e.preventDefault();
@@ -19,8 +20,9 @@ function MoviesList() {
 		}
 
 		try {
-			const { body } = await getMovies(params);
+			const { body, scroll_id } = await getMovies(params);
 			setMovies(body);
+			setScrollId(scroll_id);
 		} catch (e) {
 			console.error(e.message);
 		} finally {
