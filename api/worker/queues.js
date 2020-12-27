@@ -4,7 +4,7 @@ const path = require('path');
 const QUEUE_NAME_MOVIE_INDEXING = 'movie indexing';
 
 const PROCESSOR_MAP = {
-	[QUEUE_NAME_MOVIE_INDEXING]: path.join(__dirname, './processors/movieIndexing')
+	[QUEUE_NAME_MOVIE_INDEXING]: path.join(__dirname, './processors/indexMovieProcessor')
 };
 
 const redisQueueConfig = {
