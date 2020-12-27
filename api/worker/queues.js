@@ -16,7 +16,7 @@ const movieIndexQueue = new Queue(QUEUE_NAME_MOVIE_INDEXING, redisQueueConfig);
 const enableProcessing = queue => {
 	queue.on('paused', () => console.log('Movie Index Queue has paused'));
 	queue.on('resumed', () => console.log('Movie Index Queue has resumed'));
-	queue.process(5, PROCESSOR_MAP[queue.name]);
+	queue.process(2, PROCESSOR_MAP[queue.name]);
 	queue.resume();
 }
 

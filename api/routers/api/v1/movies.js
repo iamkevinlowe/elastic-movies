@@ -10,19 +10,26 @@ const sourceFields = [
 ];
 
 router.get('/', async (req, res) => {
-	const options = { index: Movie.INDEX, _source_includes: sourceFields };
+	const options = { scroll: '1m' };
 	const body = {};
 
-	if (req.query.query) {
-		body.query = {
-			match: { title: req.query.query }
-		};
+	if (req.query.scroll_id) {
+		options.scroll_id = req.query.scroll_id;
+	} else {
+		options.index = Movie.INDEX;
+		options._source_includes = sourceFields;
+
+		if (req.query.query) {
+			body.query = {
+				match: { title: req.query.query }
+			};
+		}
 	}
 
 	try {
 		const response = await Movie.fetchSearchResult(options, body);
 		const movies = response.hits.map(item => item._source);
-		res.json({ body: movies, total: response.total.value });
+		res.json({ body: movies, total: response.total.value, scroll_id: response.scroll_id });
 	} catch (e) {
 		console.error(e.message);
 		res.status(500).json(e);
