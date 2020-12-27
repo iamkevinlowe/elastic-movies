@@ -20,8 +20,16 @@ router.get('/', async (req, res) => {
 		options._source_includes = sourceFields;
 
 		if (req.query.query) {
+			const query = req.query.query;
 			body.query = {
-				match: { title: req.query.query }
+				bool: {
+					should: [
+						{ match: { title: query } },
+						{ match: { 'keywords.name': query } },
+						{ match: { 'credits.cast.name': query } },
+						{ match: { 'credits.cast.character': query } }
+					]
+				}
 			};
 		}
 	}
