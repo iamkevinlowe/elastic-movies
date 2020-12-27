@@ -190,7 +190,6 @@ class Movie {
 	 */
 	static async fetchSearchResult(options = {}, body = {}) {
 		const response = await esClient.request(options.scroll_id ? 'scroll' : 'search', { ...options, body });
-		console.log(response);
 
 		const { hits = {}, _scroll_id } = response;
 		hits.hits = await Promise.all(hits.hits.map(async item => {
