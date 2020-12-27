@@ -10,8 +10,9 @@ const app = express();
 app.use('/', router);
 
 app.post('/indexPopularMovies', (req, res) => {
-	indexPopularMovies();
-	res.json({ ok: true });
+	indexPopularMovies()
+		.then(() => res.json({ ok: true }))
+		.catch(error => res.status(500).json(error));
 });
 
 setQueues([

@@ -16,7 +16,6 @@ router.get('/', async (req, res) => {
 	if (req.query.scroll_id) {
 		options.scroll_id = req.query.scroll_id;
 	} else {
-		options.index = Movie.INDEX;
 		options._source_includes = sourceFields;
 
 		if (req.query.query) {
@@ -46,7 +45,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
 	try {
-		const response = await Movie.fetchById({ index: Movie.INDEX, id: req.params.id, _source_includes: sourceFields });
+		const response = await Movie.fetchById({ id: req.params.id, _source_includes: sourceFields });
 		res.json({ body: response });
 	} catch (e) {
 		console.error(e.message);
