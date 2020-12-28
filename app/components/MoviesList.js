@@ -18,7 +18,7 @@ function MoviesList() {
 
 	useEffect(() => {
 		let isRequesting = false;
-
+		const element = moviesContainerEl.current;
 		const scrollHandler = async e => {
 			const { clientHeight, scrollHeight, scrollTop } = e.currentTarget;
 			const thresholdAwayFromEnd = 250;
@@ -45,8 +45,8 @@ function MoviesList() {
 			}
 		};
 
-		moviesContainerEl.current.addEventListener('scroll', scrollHandler);
-		return () => moviesContainerEl.current.removeEventListener('scroll', scrollHandler);
+		element.addEventListener('scroll', scrollHandler);
+		return () => element.removeEventListener('scroll', scrollHandler);
 	}, [scrollId, movies, total]);
 
 	const onSearchMoviesSubmit = async e => {

@@ -56,12 +56,8 @@ const processor = async (job, done) => {
 			return sim.id;
 		}));
 
-		if (!await isIndexed(Movie.INDEX, movie.id)) {
-			await indexDocument(Movie.INDEX, movie);
-			done(null, `Indexed ${movie.title}`);
-		} else {
-			done(null, `Found ${movie.title}`);
-		}
+		const { result } = await indexDocument(Movie.INDEX, movie);
+		done(null, `${result} ${movie.title}`);
 	} catch (e) {
 		console.error('Failed indexing movie', e);
 
