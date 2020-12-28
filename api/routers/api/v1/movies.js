@@ -20,16 +20,31 @@ router.get('/', async (req, res) => {
 
 		if (req.query.query) {
 			const query = req.query.query;
+			const shouldMatches = req.query.fields
+				.split(',')
+				.map(field => {
+					let key;
+					switch (field) {
+						case 'keyword':
+							key = 'keywords.name';
+							break;
+						case 'actor':
+							key = 'credits.cast.name';
+							break;
+						case 'character':
+							key = 'credits.cast.character';
+							break;
+						default:
+							key = field;
+					}
+					return { match: { [key]: query } };
+				});
+
 			body.query = {
-				bool: {
-					should: [
-						{ match: { title: query } },
-						{ match: { 'keywords.name': query } },
-						{ match: { 'credits.cast.name': query } },
-						{ match: { 'credits.cast.character': query } }
-					]
-				}
+				bool: { should: shouldMatches }
 			};
+		} else {
+			options.sort = 'popularity:desc';
 		}
 	}
 

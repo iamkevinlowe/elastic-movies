@@ -9,6 +9,7 @@ const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../comm
 
 function MoviesList() {
 	const [isLoading, setIsLoading] = useState(false);
+	const [checkBoxStates, setCheckBoxStates] = useState({ title: true, keyword: true, actor: true, character: true });
 	const [movies, setMovies] = useState([]);
 	const [scrollId, setScrollId] = useState(null);
 	const [total, setTotal] = useState(0);
@@ -54,10 +55,18 @@ function MoviesList() {
 		setIsLoading(true);
 
 		const { getMovies } = await getMovieModule();
-		const params = {};
+		const params = { fields: [] };
+
 		if (searchInputEl.current.value) {
 			params.query = searchInputEl.current.value;
 		}
+
+		Object.keys(checkBoxStates)
+			.forEach(field => {
+				if (checkBoxStates[field]) {
+					params.fields.push(field);
+				}
+			});
 
 		try {
 			const { body, scroll_id, total } = await getMovies(params);
@@ -71,6 +80,22 @@ function MoviesList() {
 		}
 	};
 
+	const onCheckboxChange = e => {
+		const fieldsChecked = Object.values(checkBoxStates)
+			.filter(value => value)
+			.length;
+
+		if (
+			!e.currentTarget.checked
+			&& fieldsChecked <= 1) {
+			alert('At least 1 field must be selected');
+			return false;
+		}
+
+		checkBoxStates[e.currentTarget.name] = !checkBoxStates[e.currentTarget.name];
+		setCheckBoxStates({ ...checkBoxStates });
+	};
+
 	return (
 		<div
 			className="container d-flex flex-column"
@@ -78,7 +103,7 @@ function MoviesList() {
 			<div className="row mb-2">
 				<div className="col">
 					<form onSubmit={onSearchMoviesSubmit}>
-						<div className="input-group">
+						<div className="input-group mb-2">
 							<input
 								type="text"
 								className="form-control"
@@ -105,6 +130,57 @@ function MoviesList() {
 									)
 									: 'Search'}
 							</button>
+						</div>
+
+						<div className="text-center">
+							<div className="form-check form-check-inline form-switch">
+								<input
+									className="form-check-input"
+									id="checkboxTitle"
+									type="checkbox"
+									name="title"
+									checked={checkBoxStates.title}
+									onChange={onCheckboxChange} />
+								<label
+									className="form-check-label"
+									htmlFor="checkboxTitle">Title</label>
+							</div>
+							<div className="form-check form-check-inline form-switch">
+									<input
+										className="form-check-input"
+										id="checkboxKeyword"
+										type="checkbox"
+										name="keyword"
+										checked={checkBoxStates.keyword}
+										onChange={onCheckboxChange} />
+									<label
+										className="form-check-label"
+										htmlFor="checkboxKeyword">Keyword</label>
+								</div>
+							<div className="form-check form-check-inline form-switch">
+									<input
+										className="form-check-input"
+										id="checkboxActor"
+										type="checkbox"
+										name="actor"
+										checked={checkBoxStates.actor}
+										onChange={onCheckboxChange} />
+									<label
+										className="form-check-label"
+										htmlFor="checkboxActor">Actor/Actress</label>
+								</div>
+							<div className="form-check form-check-inline form-switch">
+								<input
+									className="form-check-input"
+									id="checkboxCharacter"
+									type="checkbox"
+									name="character"
+									checked={checkBoxStates.character}
+									onChange={onCheckboxChange} />
+								<label
+									className="form-check-label"
+									htmlFor="checkboxCharacter">Character</label>
+							</div>
 						</div>
 					</form>
 				</div>
