@@ -7,12 +7,28 @@ import { Link } from 'react-router-dom';
 
 const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
 
-function MoviesList() {
+const styles = {
+	container: { height: 'calc(100vh - 64px)' },
+	cardImage: { minHeight: '456px' }
+};
+
+function MoviesList({ history }) {
+	window.onpopstate = e => {
+		const movieEl = document.querySelector(`[data-id='${e.state.state.movieId}']`);
+		movieEl && movieEl.scrollIntoView();
+	};
+
+	const {
+		movies: stateMovies = [],
+		scrollId: stateScrollId,
+		total: stateScrollid
+	} = history.location.state || {};
+
 	const [isLoading, setIsLoading] = useState(false);
 	const [checkBoxStates, setCheckBoxStates] = useState({ title: true, keyword: true, actor: true, character: true });
-	const [movies, setMovies] = useState([]);
-	const [scrollId, setScrollId] = useState(null);
-	const [total, setTotal] = useState(0);
+	const [movies, setMovies] = useState(stateMovies);
+	const [scrollId, setScrollId] = useState(stateScrollId);
+	const [total, setTotal] = useState(stateScrollid);
 
 	const searchInputEl = useRef(null);
 	const moviesContainerEl = useRef(null);
@@ -35,11 +51,13 @@ function MoviesList() {
 
 				try {
 					const { body, scroll_id, total } = await getMovies({ scroll_id: scrollId });
-					setMovies([...movies, ...body]);
-					setScrollId(scroll_id);
-					setTotal(total);
+					setHistoryAndComponentState({
+						movies: [...movies, ...body],
+						scrollId: scroll_id,
+						total
+					});
 				} catch (e) {
-					console.error(e.message);
+					setHistoryAndComponentState({ movies, total });
 				} finally {
 					isRequesting = false;
 				}
@@ -49,6 +67,16 @@ function MoviesList() {
 		element.addEventListener('scroll', scrollHandler);
 		return () => element.removeEventListener('scroll', scrollHandler);
 	}, [scrollId, movies, total]);
+
+	const setHistoryAndComponentState = ({ movies = [], scrollId = null, total = 0 }) => {
+		window.history.replaceState({
+			key: window.history.state.key,
+			state: { movies, scrollId, total }
+		}, 'MoviesList');
+		setMovies(movies);
+		setScrollId(scrollId);
+		setTotal(total);
+	};
 
 	const onSearchMoviesSubmit = async e => {
 		e.preventDefault();
@@ -70,9 +98,12 @@ function MoviesList() {
 
 		try {
 			const { body, scroll_id, total } = await getMovies(params);
-			setMovies(body);
-			setScrollId(scroll_id);
-			setTotal(total);
+			setHistoryAndComponentState({
+				movies: body,
+				scrollId: scroll_id,
+				total
+			});
+			moviesContainerEl.current.scrollTo(0, 0);
 		} catch (e) {
 			console.error(e.message);
 		} finally {
@@ -96,10 +127,17 @@ function MoviesList() {
 		setCheckBoxStates({ ...checkBoxStates });
 	};
 
+	const onMovieClick = e => {
+		window.history.replaceState({
+			key: window.history.state.key,
+			state: { ...window.history.state.state, movieId: e.currentTarget.dataset.id }
+		}, 'MoviesList');
+	};
+
 	return (
 		<div
 			className="container d-flex flex-column"
-			style={{ height: 'calc(100vh - 64px)' }}>
+			style={styles.container}>
 			<div className="row mb-2">
 				<div className="col">
 					<form onSubmit={onSearchMoviesSubmit}>
@@ -193,14 +231,19 @@ function MoviesList() {
 					<div
 						className="col-3 mb-2"
 						key={movie.id}>
-						<Link to={{
-							pathname: `/movies/${movie.id}`,
-							movie }}>
+						<Link
+							data-id={movie.id}
+							onClick={onMovieClick}
+							to={{
+								pathname: `/movies/${movie.id}`,
+								movie
+							}}>
 							<div className="card">
 								<img
 									className="card-img-top"
 									src={movie.poster_path || 'https://picsum.photos/304/456'}
-									alt={`${movie.title} Poster`} />
+									alt={`${movie.title} Poster`}
+									style={styles.cardImage}/>
 								<div className="card-body">
 									<h5 className="card-title">{movie.title}</h5>
 								</div>

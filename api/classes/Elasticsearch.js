@@ -175,6 +175,11 @@ class Elasticsearch {
 		}
 
 		const response = await method.call(this._client, params, { ignore: [404] });
+		if (response.statusCode >= 400) {
+			const error = new Error(response.body.error.caused_by.reason);
+			Object.assign(error, response.body.error);
+			throw error;
+		}
 		return response.body;
 	}
 }
