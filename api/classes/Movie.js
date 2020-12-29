@@ -4,7 +4,7 @@ const Elasticsearch = require('./Elasticsearch');
 const MovieReviews = require('./MovieReviews');
 const MovieVideos = require('./MovieVideos');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST || 'http://es01:9200' });
+const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 const indexMappingMovies = {
 	backdrop_path: { type: 'text' },

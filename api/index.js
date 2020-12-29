@@ -1,9 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const routerApiV1 = require('./routers/api/v1');
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.API_PORT;
 
 /** Body Parser */
 app.use(bodyParser.urlencoded({ extended: false })); // application/x-www-form-urlencoded

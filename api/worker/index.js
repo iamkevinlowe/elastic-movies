@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 const express = require('express');
 const { router, setQueues, BullAdapter } = require('bull-board');
 
 const { movieIndexQueue, enableProcessing } = require('./queues');
 const indexPopularMovies = require('./jobs/indexPopularMovies');
 
-const port = 9000;
+const port = process.env.WORKER_PORT;
 const app = express();
 
 app.use('/', router);

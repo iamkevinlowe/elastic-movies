@@ -46,13 +46,13 @@ const processor = async (job, done) => {
 
 		// Recommendations
 		movie.recommendation_ids = await Promise.all(recommendations.map(async recommendation => {
-			await movieIndexQueue.add(recommendation);
+			// await movieIndexQueue.add(recommendation);
 			return recommendation.id;
 		}));
 
 		// Similar
 		movie.similar_ids = await Promise.all(similar.map(async sim => {
-			await movieIndexQueue.add(sim);
+			// await movieIndexQueue.add(sim);
 			return sim.id;
 		}));
 

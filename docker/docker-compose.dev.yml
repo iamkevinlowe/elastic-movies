@@ -7,8 +7,8 @@ services:
         image: elastic-movies_server
         container_name: elastic-movies_server
         ports:
-            - '80:80' # Connect localhost 80 port to container 80 port
-        links: # Link services to access http://app and http://api inside the container
+            - '80:80'
+        links:
             - api:api
             - app:app
         depends_on:
@@ -23,10 +23,10 @@ services:
         container_name: elastic-movies_app
         environment:
             - NODE_ENV=development
-        volumes: # For webpack dev server to use our local files
+        volumes:
             - ../app:/usr/src/app
         ports:
-            - '3000:3000' # For docker to now where to redirect HMR queries
+            - '3000:3000'
 
     api:
         build:
@@ -35,8 +35,6 @@ services:
         image: elastic-movies_api
         container_name: elastic-movies_api
         environment:
-            - ES_HOST=http://es01:9200/
-            - TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI
             - NODE_ENV=development
         volumes:
             - ../api:/usr/src/api
@@ -54,8 +52,6 @@ services:
         image: elastic-movies_worker
         container_name: elastic-movies_worker
         environment:
-            - ES_HOST=http://es01:9200/
-            - TMDB_API_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiZWE0MzdhNjFhYThkNGUyZDk4NGQ2NzNkMTMyYjkxYiIsInN1YiI6IjVlN2NiODhhNmM3NGI5NTc1N2NhNDYzZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.CGnvrBJ57Mny5PCFup7zE-NEqNbwB1qQmI2OH61naqI
             - NODE_ENV=development
         volumes:
             - ../api:/usr/src/worker
