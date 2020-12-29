@@ -4,7 +4,7 @@ services:
         build:
             context: ../.
             dockerfile: docker/server/Dockerfile.dev
-        image: elastic-movies_server
+        image: iamkevinlowe/elastic-movies_server
         container_name: elastic-movies_server
         ports:
             - '80:80'
@@ -19,7 +19,7 @@ services:
         build:
             context: ../.
             dockerfile: docker/app/Dockerfile.dev
-        image: elastic-movies_app
+        image: iamkevinlowe/elastic-movies_app
         container_name: elastic-movies_app
         environment:
             - NODE_ENV=development
@@ -32,7 +32,7 @@ services:
         build:
             context: ../.
             dockerfile: docker/api/Dockerfile.dev
-        image: elastic-movies_api
+        image: iamkevinlowe/elastic-movies_api
         container_name: elastic-movies_api
         environment:
             - NODE_ENV=development
@@ -49,7 +49,7 @@ services:
         build:
             context: ../.
             dockerfile: docker/worker/Dockerfile.dev
-        image: elastic-movies_worker
+        image: iamkevinlowe/elastic-movies_worker
         container_name: elastic-movies_worker
         environment:
             - NODE_ENV=development
