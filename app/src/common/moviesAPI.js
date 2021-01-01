@@ -1,5 +1,12 @@
-const ENDPOINT = `${process.env.API_HOST}v1/movies/`;
+const ENDPOINT = 'http://localhost/api/v1/movies/';
 
+/**
+ * Fetches movies by the given params
+ *
+ * @param {Object} [params={}]
+ * @returns {Promise<Object>}
+ * @throws Error
+ */
 export async function getMovies(params = {}) {
 	const url = new URL(ENDPOINT);
 	url.search = new URLSearchParams(params).toString();
@@ -15,6 +22,13 @@ export async function getMovies(params = {}) {
 	return response.json();
 }
 
+/**
+ * Fetch movie by the given id
+ *
+ * @param {number} id
+ * @returns {Promise<Object>}
+ * @throws Error
+ */
 export async function getMovie(id) {
 	if (!id) {
 		throw new Error('No id provided');

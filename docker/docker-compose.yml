@@ -3,11 +3,11 @@ services:
     app:
         build:
             context: ../.
-            dockerfile: docker/app/Dockerfile.dev
+            dockerfile: docker/app/Dockerfile
         image: iamkevinlowe/elastic-movies_app
         container_name: elastic-movies_app
         environment:
-            - NODE_ENV=development
+            - NODE_ENV=production
         volumes:
             - ../app:/usr/src/app
         ports:
@@ -20,11 +20,11 @@ services:
     worker:
         build:
             context: ../.
-            dockerfile: docker/worker/Dockerfile.dev
+            dockerfile: docker/worker/Dockerfile
         image: iamkevinlowe/elastic-movies_worker
         container_name: elastic-movies_worker
         environment:
-            - NODE_ENV=development
+            - NODE_ENV=production
         volumes:
             - ../app:/usr/src/worker
         ports:
@@ -65,7 +65,7 @@ services:
             - discovery.seed_hosts=es01,es03
             - cluster.initial_master_nodes=es01,es02,es03
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
         ulimits:
             memlock:
                 soft: -1
@@ -83,7 +83,7 @@ services:
             - discovery.seed_hosts=es01,es02
             - cluster.initial_master_nodes=es01,es02,es03
             - bootstrap.memory_lock=true
-            - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+            - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
         ulimits:
             memlock:
                 soft: -1

@@ -13,26 +13,31 @@ const styles = {
 };
 
 function MoviesList({ history }) {
-	window.onpopstate = e => {
-		const movieEl = document.querySelector(`[data-id='${e.state.state.movieId}']`);
-		movieEl && movieEl.scrollIntoView();
-	};
-
 	const {
 		movies: stateMovies = [],
-		scrollId: stateScrollId,
-		total: stateScrollid
+		scrollId: stateScrollId = null,
+		total: stateTotal = 0,
+		movieId: stateMovieId
 	} = history.location.state || {};
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [checkBoxStates, setCheckBoxStates] = useState({ title: true, keyword: true, actor: true, character: true });
 	const [movies, setMovies] = useState(stateMovies);
 	const [scrollId, setScrollId] = useState(stateScrollId);
-	const [total, setTotal] = useState(stateScrollid);
+	const [total, setTotal] = useState(stateTotal);
 
 	const searchInputEl = useRef(null);
 	const moviesContainerEl = useRef(null);
 
+	// Scroll back to clicked movie
+	if (stateMovieId) {
+		useEffect(() => {
+				const movieEl = document.querySelector(`[data-id='${stateMovieId}']`);
+				movieEl && movieEl.scrollIntoView();
+		}, []);
+	}
+
+	// Infinite scroll
 	useEffect(() => {
 		let isRequesting = false;
 		const element = moviesContainerEl.current;
@@ -70,7 +75,7 @@ function MoviesList({ history }) {
 
 	const setHistoryAndComponentState = ({ movies = [], scrollId = null, total = 0 }) => {
 		window.history.replaceState({
-			key: window.history.state.key,
+			key: window.history.state && window.history.state.key,
 			state: { movies, scrollId, total }
 		}, 'MoviesList');
 		setMovies(movies);

@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, {
+	useEffect,
+	useState
+} from 'react';
 
 import MovieCarousel from './MovieCarousel';
 
@@ -8,7 +11,7 @@ function Movie(props) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [movie, setMovie] = useState({});
 
-	if (!isLoading && !movie.id) {
+	useEffect(() => {
 		if (props.location.movie) {
 			setMovie(props.location.movie);
 		} else {
@@ -19,7 +22,7 @@ function Movie(props) {
 				.catch(e => console.error(e.message))
 				.finally(() => setIsLoading(false));
 		}
-	}
+	}, []);
 
 	return (
 		<div className="container">
