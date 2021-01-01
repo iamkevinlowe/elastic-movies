@@ -175,12 +175,24 @@ class Elasticsearch {
 		}
 
 		const response = await method.call(this._client, params, { ignore: [404] });
-		if (response.statusCode >= 400) {
-			const error = new Error(response.body.error.caused_by.reason);
-			Object.assign(error, response.body.error);
-			throw error;
+		const { statusCode, body } = response;
+		if (
+			statusCode < 400
+			|| statusCode === 404
+		) {
+			return body;
 		}
-		return response.body;
+
+		console.log(response);
+
+		const errorMessage = body
+			&& body.error
+			&& body.error.caused_by
+			&& body.error.caused_by.reason
+			|| `Failed to request ${endpoint}`;
+		const error = new Error(errorMessage);
+		Object.assign(error, body.error);
+		throw error;
 	}
 }
 

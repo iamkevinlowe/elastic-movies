@@ -1,11 +1,30 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
-import 'core-js/stable';
-import 'regenerator-runtime/runtime';
+require('dotenv').config();
 
-import React from 'react';
-import { render } from 'react-dom';
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
 
-import App from './components/App';
+const routerApiV1 = require('./routers/api/v1');
 
-render(<App />, document.getElementById('root'));
+const app = express();
+
+/** Body Parser */
+app.use(bodyParser.urlencoded({ extended: false })); // application/x-www-form-urlencoded
+app.use(bodyParser.json()); // application/json
+
+/** Routing */
+app.use('/api/v1', routerApiV1); // api v1 router
+
+if (process.env.NODE_ENV === 'production') {
+	app.use(express.static(path.resolve(__dirname, 'dist')));
+
+	app.get('/*', (req, res) => {
+		res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+	});
+}
+
+const port = (process.env.NODE_ENV === 'development' && process.env.API_PORT) || 80;
+
+app.listen(port, () => {
+	console.log(`Elastic Movies listening at http://localhost:${port}`);
+});

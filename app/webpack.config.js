@@ -1,16 +1,9 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const webpack = require('webpack');
 
 module.exports = env => {
-	let API_HOST = '';
-
-	if (env.NODE_ENV === 'development') {
-		API_HOST = 'http://localhost/api/';
-	}
-
-	return {
-		entry: './index.js',
+	const config = {
+		entry: './src/index.js',
 		output: {
 			publicPath: '/'
 		},
@@ -36,19 +29,23 @@ module.exports = env => {
 		},
 		plugins: [
 			new HtmlWebpackPlugin({
-				template: path.resolve(__dirname, 'index.html')
-			}),
-			new webpack.EnvironmentPlugin({
-				API_HOST
+				template: path.resolve(__dirname, 'src', 'index.html')
 			})
-		],
-		devServer: {
+		]
+	};
+
+	if (env.NODE_ENV === 'development') {
+		config.devServer = {
 			contentBase: path.join(__dirname, 'dist'),
 			compress: true,
 			historyApiFallback: true,
 			host: '0.0.0.0',
-			port: 3000,
-		},
-		devtool: 'source-map'
-	};
+			port: 80,
+			proxy: { '/api': 'http://localhost:8080' }
+		};
+
+		config.devtool = 'source-map';
+	}
+
+	return config;
 };

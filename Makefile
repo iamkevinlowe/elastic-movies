@@ -4,6 +4,9 @@ install: uninstall
 up: down
 	@docker-compose -f docker/docker-compose.dev.yml up
 
+prod: down
+	@docker-compose -f docker/docker-compose.yml up
+
 down:
 	@docker-compose -f docker/docker-compose.dev.yml down
 

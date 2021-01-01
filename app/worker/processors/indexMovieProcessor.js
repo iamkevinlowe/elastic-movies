@@ -2,11 +2,17 @@ const Movie = require('../../classes/Movie');
 const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
+const { capitalize } = require('../../classes/UtilString');
 const { movieIndexQueue } = require('../queues');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 const processor = async (job, done) => {
+	if (job.data.adult) {
+		done(null, `Skipping ${job.data.title}`);
+		return;
+	}
+
 	const movie = new Movie(job.data);
 
 	try {
@@ -47,17 +53,27 @@ const processor = async (job, done) => {
 		// Recommendations
 		movie.recommendation_ids = await Promise.all(recommendations.map(async recommendation => {
 			// await movieIndexQueue.add(recommendation);
+
+			// Index recommendation as is, without adding additional details
+			if (!await isIndexed(Movie.INDEX, recommendation.id)) {
+				await indexDocument(Movie.INDEX, recommendation);
+			}
 			return recommendation.id;
 		}));
 
 		// Similar
 		movie.similar_ids = await Promise.all(similar.map(async sim => {
 			// await movieIndexQueue.add(sim);
+
+			// Index similar as is, without adding additional details
+			if (!await isIndexed(Movie.INDEX, sim.id)) {
+				await indexDocument(Movie.INDEX, sim);
+			}
 			return sim.id;
 		}));
 
 		const { result } = await indexDocument(Movie.INDEX, movie);
-		done(null, `${result} ${movie.title}`);
+		done(null, `${capitalize(result)} ${movie.title}`);
 	} catch (e) {
 		console.error('Failed indexing movie', e);
 

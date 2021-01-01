@@ -3,9 +3,6 @@
 .gitignore
 .idea
 Makefile
-api/node_modules
 app/node_modules
 app/dist
-dist
 docker
-node_modules
