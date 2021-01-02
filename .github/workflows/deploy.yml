@@ -85,6 +85,6 @@ jobs:
                         docker network create elastic-movies_network
                         docker run -d -h redis --name elastic-movies_redis --network elastic-movies_network -p 6379:6379 --restart on-failure -v data_redis:/data redis:latest
                         docker run -d --env-file env/es01.env -h es01 --name elastic-movies_es01 --network elastic-movies_network -p 9200:9200 -v data_es01:/usr/share/elasticsearch/data --restart on-failure --ulimit memlock=-1:-1 elasticsearch:7.10.1
-                        docker run -d --env-file env/es02.env -h es02 --name elastic-movies_es02 --network elastic-movies_network -v data_es02:/usr/share/elasticsearch/data --restart on-failure elasticsearch:7.10.1
+                        docker run -d --env-file env/es02.env -h es02 --name elastic-movies_es02 --network elastic-movies_network -v data_es02:/usr/share/elasticsearch/data --restart on-failure --ulimit memlock=-1:-1 elasticsearch:7.10.1
                         docker run -d --env-file env/app.env --name elastic-movies_app --network elastic-movies_network -p 80:80 --restart on-failure iamkevinlowe/elastic-movies_app:latest
                         docker run -d --env-file env/worker.env --name elastic-movies_worker --network elastic-movies_network -p 9000:9000 --restart on-failure iamkevinlowe/elastic-movies_worker:latest
