@@ -48,8 +48,6 @@ jobs:
                     push: true
                     tags: iamkevinlowe/elastic-movies_app:latest
 
-            -   name: App image digest
-                run: echo ${{ steps.docker_build.outputs.digest }}
 
             -   name: Build and push worker
                 id: docker_build_worker
@@ -60,5 +58,24 @@ jobs:
                     push: true
                     tags: iamkevinlowe/elastic-movies_worker:latest
 
-            -   name: Worker image digest
-                run: echo ${{ steps.docker_build.outputs.digest }}
+            -   name: Deploy package to digitalocean
+                uses: appleboy/ssh-action@master
+                env:
+                    DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+                    DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+                with:
+                    host: ${{ secrets.DO_IP_ADDRESS }}
+                    username: ${{ secrets.DO_USERNAME }}
+                    password: ${{ secrets.DO_PASSWORD }}
+                    port: ${{ secrets.DO_PORT }}
+                    envs: DOCKER_HUB_USERNAME, DOCKER_HUB_PASSWORD
+                    script: |
+                        docker stop $(docker ps -a -q)
+                        docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+                        docker pull iamkevinlowe/elastic-movies_app:latest
+                        docker run -dit -p 80:80 iamkevinlowe/elastic-movies_app:latest
+
+            -   name: Image digests
+                run: |
+                    echo ${{ steps.docker_build_app.outputs.digest }}
+                    echo ${{ steps.docker_build_worker.outputs.digest }}
