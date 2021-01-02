@@ -22,7 +22,7 @@ app.use('/', router);
 app.post('/indexPopularMovies', (req, res) => {
 	indexPopularMovies()
 		.then(() => res.json({ ok: true }))
-		.catch(error => res.status(500).json(error));
+		.catch(error => res.status(500).json({ message: error.message }));
 });
 
 app.post('/queues', (req, res) => {

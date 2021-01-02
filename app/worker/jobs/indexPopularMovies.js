@@ -2,7 +2,10 @@ const Movie = require('../../classes/Movie');
 const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
-const { movieIndexQueue } = require('../queues');
+const {
+	QUEUE_NAME_MOVIE_INDEXING,
+	getQueue
+} = require('../queues');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
@@ -17,9 +20,11 @@ module.exports = async () => {
 
 	let movies;
 
-	await movieIndexQueue.empty();
+	const queue = getQueue(QUEUE_NAME_MOVIE_INDEXING);
+
+	await queue.empty();
 	while (movies = await Movie.fetchPopularBatched()) {
-		await Promise.all(movies.map(movie => movieIndexQueue.add(movie)));
+		await Promise.all(movies.map(movie => queue.add(movie)));
 	}
 };
 
