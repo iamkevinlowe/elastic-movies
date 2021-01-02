@@ -3,7 +3,10 @@ const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
 const { capitalize } = require('../../classes/UtilString');
-const { movieIndexQueue } = require('../queues');
+const {
+	QUEUE_NAME_MOVIE_INDEXING,
+	getQueue
+} = require('../queues');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
@@ -13,6 +16,7 @@ const processor = async (job, done) => {
 		return;
 	}
 
+	const movieIndexQueue = getQueue(QUEUE_NAME_MOVIE_INDEXING);
 	const movie = new Movie(job.data);
 
 	try {
