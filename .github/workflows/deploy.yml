@@ -1,0 +1,34 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+#       - name: Use Node.js 14.15.3
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: '14.15.3'
+          
+#       - name: Install npm and run unittest
+#         run: |
+#           npm install
+#           npm run test
+#         env:
+#           CI: true
+
+      - name: Publish Docker Images
+        uses: whoan/docker-build-with-cache-action@v5
+        with:
+          username: "${{ secrets.DOCKER_HUB_USERNAME }}"
+          password: "${{ secrets.DOCKER_HUB_PASSWORD }}"
+          compose_file: ./docker/docker-compose.yml
