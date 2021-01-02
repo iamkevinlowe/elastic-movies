@@ -48,7 +48,6 @@ jobs:
                     push: true
                     tags: iamkevinlowe/elastic-movies_app:latest
 
-
             -   name: Build and push worker
                 id: docker_build_worker
                 uses: docker/build-push-action@v2
@@ -58,24 +57,19 @@ jobs:
                     push: true
                     tags: iamkevinlowe/elastic-movies_worker:latest
 
-            -   name: Deploy package to digitalocean
+            -   name: Image digests
+                run: |
+                    echo "App: ${{ steps.docker_build_app.outputs.digest }}"
+                    echo "Worker: ${{ steps.docker_build_worker.outputs.digest }}"
+
+            -   name: Deploy to Digitalocean
                 uses: appleboy/ssh-action@master
-                env:
-                    DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-                    DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
                 with:
                     host: ${{ secrets.DO_IP_ADDRESS }}
                     username: ${{ secrets.DO_USERNAME }}
                     key: ${{ secrets.DO_KEY }}
                     port: ${{ secrets.DO_PORT }}
-                    envs: DOCKER_HUB_USERNAME, DOCKER_HUB_PASSWORD
                     script: |
-                        docker stop $(docker ps -a -q)
-                        docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
-                        docker pull iamkevinlowe/elastic-movies_app:latest
-                        docker run -dit -p 80:80 iamkevinlowe/elastic-movies_app:latest
-
-            -   name: Image digests
-                run: |
-                    echo ${{ steps.docker_build_app.outputs.digest }}
-                    echo ${{ steps.docker_build_worker.outputs.digest }}
+                        cd ~/elastic-movies
+                        git pull git@github.com:iamkevinlowe/elastic-movies.git
+                        docker-compose -f docker/docker-compose.yml up

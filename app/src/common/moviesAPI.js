@@ -1,4 +1,4 @@
-const ENDPOINT = 'http://localhost/api/v1/movies/';
+const ENDPOINT = `${window.location.origin}/api/v1/movies/`;
 
 /**
  * Fetches movies by the given params

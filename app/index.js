@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -23,7 +21,7 @@ if (process.env.NODE_ENV === 'production') {
 	});
 }
 
-const port = (process.env.NODE_ENV === 'development' && process.env.API_PORT) || 80;
+const port = process.env.PORT;
 
 app.listen(port, () => {
 	console.log(`Elastic Movies listening at http://localhost:${port}`);
