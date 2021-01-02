@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const { router, setQueues, BullAdapter } = require('bull-board');
@@ -13,7 +11,6 @@ const {
 const indexPopularMovies = require('./jobs/indexPopularMovies');
 
 const app = express();
-const port = process.env.WORKER_PORT;
 
 /** Body Parser */
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -49,6 +46,8 @@ setQueues([
 	new BullAdapter(getQueue(QUEUE_NAME_MOVIE_INDEXING))
 ]);
 initProcessing(QUEUE_NAME_MOVIE_INDEXING);
+
+const port = process.env.PORT;
 
 app.listen(port, () => {
 	console.log(`Elastic Movies Worker listening at http://localhost:${port}`);
