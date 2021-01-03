@@ -2,10 +2,7 @@ const Movie = require('../../classes/Movie');
 const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
-const {
-	QUEUE_NAME_MOVIE_INDEXING,
-	getQueue
-} = require('../queues');
+const Queue = require('../../classes/Queue');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
@@ -20,7 +17,7 @@ module.exports = async () => {
 
 	let movies;
 
-	const queue = getQueue(QUEUE_NAME_MOVIE_INDEXING);
+	const queue = (new Queue(Queue.NAME_INDEX_MOVIES)).getQueue();
 
 	await queue.empty();
 	while (movies = await Movie.fetchPopularBatched()) {
@@ -28,6 +25,13 @@ module.exports = async () => {
 	}
 };
 
+/**
+ * Checks if an index exists.  If not, it'll create it with the given field mappings
+ *
+ * @param {string} index
+ * @param {Object} mappings
+ * @returns {Promise<void>}
+ */
 const createIndexIfNotExists = async (index, mappings) => {
 	if (!await esClient.request('indices.exists', { index })) {
 		await esClient.request('indices.create', {

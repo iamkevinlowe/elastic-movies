@@ -30,21 +30,22 @@ class TheMovieDb {
 			method: 'GET',
 			headers: {
 				Authorization: `Bearer ${API_TOKEN}`,
-				'Content-Type': 'application/json;charset=utf-8'
+				'Content-Type': 'application/json;charset=utf-8',
+				'Connection': 'keep-alive'
 			}
 		};
 
 		return new Promise((resolve, reject) => {
 			const req = https.request(options, res => {
-				let chunks = '';
+				const chunks = [];
 
-				res.on('data', chunk => chunks += chunk);
+				res.on('data', chunk => chunks.push(chunk));
 
 				res.on('end', () => {
 					const apiResponse = new ApiResponse();
 
 					try {
-						const response = JSON.parse(chunks);
+						const response = JSON.parse(chunks.join(''));
 
 						if (
 							typeof response.page !== 'undefined'

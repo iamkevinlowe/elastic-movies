@@ -9,7 +9,7 @@
 		"serve": "node index.js",
 		"serve:dev": "nodemon --ignore worker --ignore src index.js",
 		"worker": "node worker/index.js",
-		"worker:dev": "nodemon --ignore routers --ignore src worker/index.js",
+		"worker:dev": "nodemon --ignore routers --ignore src --trace-warnings worker/index.js",
 		"build": "webpack --config webpack.config.js --env NODE_ENV=production --mode production",
 		"build:dev": "webpack --config webpack.config.js --env NODE_ENV=development --mode development",
 		"webpack:dev": "webpack serve --env NODE_ENV=development --history-api-fallback --devtool source-map",
