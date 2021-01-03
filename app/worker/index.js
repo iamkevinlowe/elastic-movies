@@ -1,51 +1,19 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const { router, setQueues, BullAdapter } = require('bull-board');
+const { router: routerBullBoard, setQueues, BullAdapter } = require('bull-board');
 
-const {
-	QUEUE_NAME_MOVIE_INDEXING,
-	getQueue,
-	initProcessing,
-	enableProcessing
-} = require('./queues');
-const indexPopularMovies = require('./jobs/indexPopularMovies');
+const Queue = require('../classes/Queue');
 
-const app = express();
-
-/** Body Parser */
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
-/** Bull Job Queue UI */
-app.use('/', router);
-
-app.post('/indexPopularMovies', (req, res) => {
-	indexPopularMovies()
-		.then(() => res.json({ ok: true }))
-		.catch(error => res.status(500).json({ message: error.message }));
-});
-
-app.post('/queues', (req, res) => {
-	const { name, enable } = req.body;
-
-	if (!name || !enable) {
-		res.status(500).json({ message: 'Missing required body parameters: [name, enable]'});
-		return;
-	}
-
-	try {
-		enableProcessing(name, enable === 'true' || !!parseInt(enable));
-		res.json({ ok: true });
-	} catch (e) {
-		res.status(500).json({ message: e.message });
-	}
-});
+const queueIndexMovies = new Queue(Queue.NAME_INDEX_MOVIES);
 
 /** Set queues to bull board */
 setQueues([
-	new BullAdapter(getQueue(QUEUE_NAME_MOVIE_INDEXING))
+	new BullAdapter(queueIndexMovies.initialize(parseInt(process.env.CONCURRENCY || 1)).getQueue())
 ]);
-initProcessing(QUEUE_NAME_MOVIE_INDEXING, 2);
+
+const app = express();
+
+/** Routing */
+app.use('/queue', routerBullBoard); // Queue dashboard
 
 const port = process.env.PORT;
 

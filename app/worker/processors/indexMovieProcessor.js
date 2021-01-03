@@ -2,11 +2,8 @@ const Movie = require('../../classes/Movie');
 const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
+const Queue = require('../../classes/Queue');
 const { capitalize } = require('../../classes/UtilString');
-const {
-	QUEUE_NAME_MOVIE_INDEXING,
-	getQueue
-} = require('../queues');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
@@ -16,7 +13,7 @@ const processor = async (job, done) => {
 		return;
 	}
 
-	const movieIndexQueue = getQueue(QUEUE_NAME_MOVIE_INDEXING);
+	const queue = (new Queue(Queue.NAME_INDEX_MOVIES)).getQueue();
 	const movie = new Movie(job.data);
 
 	try {
@@ -56,7 +53,7 @@ const processor = async (job, done) => {
 
 		// Recommendations
 		movie.recommendation_ids = await Promise.all(recommendations.map(async recommendation => {
-			// await movieIndexQueue.add(recommendation);
+			// await queue.add(recommendation);
 
 			// Index recommendation as is, without adding additional details
 			if (!await isIndexed(Movie.INDEX, recommendation.id)) {
@@ -67,7 +64,7 @@ const processor = async (job, done) => {
 
 		// Similar
 		movie.similar_ids = await Promise.all(similar.map(async sim => {
-			// await movieIndexQueue.add(sim);
+			// await queue.add(sim);
 
 			// Index similar as is, without adding additional details
 			if (!await isIndexed(Movie.INDEX, sim.id)) {
@@ -82,8 +79,8 @@ const processor = async (job, done) => {
 		console.error('Failed indexing movie', e);
 
 		// Pause the queue for 1 minute
-		await movieIndexQueue.pause();
-		setTimeout(() => movieIndexQueue.resume(), 60000);
+		await queue.pause();
+		setTimeout(() => queue.resume(), 60000);
 
 		done(e.message);
 	}
