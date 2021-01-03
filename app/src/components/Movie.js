@@ -44,7 +44,7 @@ function Movie(props) {
 								<div className="card-body">
 									<h5 className="card-title">{movie.title}</h5>
 									<p className="card-text">{movie.overview}</p>
-									<p className="card-text"><small className="text-muted">{movie.release_date}</small></p>
+									<p className="card-text"><small className="text-muted">{(new Date(movie.release_date)).toDateString()}</small></p>
 								</div>
 							</div>
 						</div>
@@ -69,17 +69,17 @@ function Movie(props) {
 					{typeof movie.popularity !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Popularity</dt>
-							<dd className="col-8">{movie.popularity}</dd>
+							<dd className="col-8">{movie.popularity.toLocaleString()}</dd>
 						</dl>}
 					{typeof movie.vote_average !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Vote Average</dt>
-							<dd className="col-8">{movie.vote_average}</dd>
+							<dd className="col-8">{movie.vote_average} / 10</dd>
 						</dl>}
 					{typeof movie.vote_count !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Vote Count</dt>
-							<dd className="col-8">{movie.vote_count}</dd>
+							<dd className="col-8">{movie.vote_count.toLocaleString()}</dd>
 						</dl>}
 					{typeof movie.belongs_to_collection !== 'undefined'
 						&& <dl className="row justify-content-center">
@@ -89,7 +89,7 @@ function Movie(props) {
 					{typeof movie.budget !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Budget</dt>
-							<dd className="col-8">{movie.budget}</dd>
+							<dd className="col-8">${movie.budget.toLocaleString()}</dd>
 						</dl>}
 					{movie.genres && movie.genres.length
 						? <dl className="row justify-content-center">
@@ -110,7 +110,9 @@ function Movie(props) {
 					{typeof movie.homepage !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Homepage</dt>
-							<dd className="col-8">{movie.homepage}</dd>
+							<dd className="col-8">
+								<a href={movie.homepage} target="_blank">{movie.homepage}</a>
+							</dd>
 						</dl>}
 					{movie.production_companies && movie.production_companies.length
 						? <dl className="row justify-content-center">
@@ -147,12 +149,12 @@ function Movie(props) {
 					{typeof movie.revenue !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Revenue</dt>
-							<dd className="col-8">{movie.revenue}</dd>
+							<dd className="col-8">${movie.revenue.toLocaleString()}</dd>
 						</dl>}
 					{typeof movie.runtime !== 'undefined'
 						&& <dl className="row justify-content-center">
 							<dt className="col-2">Runtime</dt>
-							<dd className="col-8">{movie.runtime}</dd>
+							<dd className="col-8">{movie.runtime} min</dd>
 						</dl>}
 					{movie.spoken_languages && movie.spoken_languages.length
 						? <dl className="row justify-content-center">

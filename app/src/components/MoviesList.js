@@ -6,10 +6,33 @@ import React, {
 import { Link } from 'react-router-dom';
 
 const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
+const getVoteBadgeClassNames = vote => {
+	const classNames = ['badge', 'rounded-pill', 'text-white'];
+
+	if (vote <= 3) {
+		classNames.push('bg-danger');
+	} else if (vote >= 7) {
+		classNames.push('bg-success');
+	} else {
+		classNames.push('bg-warning');
+	}
+
+	return classNames.join(' ');
+};
 
 const styles = {
 	container: { height: 'calc(100vh - 64px)' },
-	cardImage: { minHeight: '456px' }
+	cardImage: { minHeight: '380px' },
+	cardVoteBadge: {
+		position: 'absolute',
+		top: '10px',
+		right: '10px'
+	},
+	cardReleaseDate: {
+		position: 'absolute',
+		bottom: 0,
+		right: '5px'
+	}
 };
 
 function MoviesList({ history }) {
@@ -237,20 +260,31 @@ function MoviesList({ history }) {
 						className="col-3 mb-2"
 						key={movie.id}>
 						<Link
+							className="text-decoration-none"
 							data-id={movie.id}
 							onClick={onMovieClick}
 							to={{
 								pathname: `/movies/${movie.id}`,
 								movie
 							}}>
-							<div className="card">
+							<div className="card text-secondary position-relative">
 								<img
 									className="card-img-top"
-									src={movie.poster_path || 'https://picsum.photos/304/456'}
+									src={movie.poster_path || 'https://picsum.photos/253/380'}
 									alt={`${movie.title} Poster`}
-									style={styles.cardImage}/>
+									style={styles.cardImage} />
+								<span
+									className={getVoteBadgeClassNames(movie.vote_average)}
+									style={styles.cardVoteBadge}>
+									{movie.vote_average}
+								</span>
 								<div className="card-body">
 									<h5 className="card-title">{movie.title}</h5>
+									<small
+										className="text-muted"
+										style={styles.cardReleaseDate}>
+										{(new Date(movie.release_date)).toDateString()}
+									</small>
 								</div>
 							</div>
 						</Link>
