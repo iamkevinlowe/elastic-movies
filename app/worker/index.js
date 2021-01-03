@@ -45,7 +45,7 @@ app.post('/queues', (req, res) => {
 setQueues([
 	new BullAdapter(getQueue(QUEUE_NAME_MOVIE_INDEXING))
 ]);
-initProcessing(QUEUE_NAME_MOVIE_INDEXING);
+initProcessing(QUEUE_NAME_MOVIE_INDEXING, 2);
 
 const port = process.env.PORT;
 
