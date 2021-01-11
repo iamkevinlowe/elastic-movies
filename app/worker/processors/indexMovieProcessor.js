@@ -3,7 +3,7 @@ const MovieReviews = require('../../classes/MovieReviews');
 const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
 const Queue = require('../../classes/Queue');
-const { capitalize } = require('../../classes/UtilString');
+const { capitalize } = require('../../utils/UtilString');
 
 const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 

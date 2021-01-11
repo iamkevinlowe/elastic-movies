@@ -178,24 +178,26 @@ function MoviesList({ history }) {
 								aria-describedby="button-addon"
 								ref={searchInputEl}
 								disabled={isLoading} />
-							<button
-								className="btn btn-outline-secondary"
-								type="submit"
-								id="button-addon"
-								disabled={isLoading}>
-								{isLoading
-									? (
-										<>
-											<span
-												className="spinner-border spinner-border-sm me-1"
-												role="status"
-												aria-hidden="true">
-											</span>
-											Loading...
-										</>
-									)
-									: 'Search'}
-							</button>
+							<div className="input-group-append">
+								<button
+									className="btn btn-outline-secondary"
+									type="submit"
+									id="button-addon"
+									disabled={isLoading}>
+									{isLoading
+										? (
+											<>
+												<span
+													className="spinner-border spinner-border-sm me-1"
+													role="status"
+													aria-hidden="true">
+												</span>
+												Loading...
+											</>
+										)
+										: 'Search'}
+								</button>
+							</div>
 						</div>
 
 						<div className="text-center">

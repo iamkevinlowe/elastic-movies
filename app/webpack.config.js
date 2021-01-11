@@ -43,7 +43,7 @@ module.exports = env => {
 			port: 80,
 			proxy: {
 				'/api': 'http://localhost:8080',
-				'/queue': 'http://worker:9000'
+				'/queue': 'http://localhost:9000'
 			}
 		};
 

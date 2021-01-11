@@ -57,7 +57,7 @@ const indexMappingMoviesDetails = {
 		}
 	},
 	revenue: { type: 'long' },
-	runtime: { type: 'short' },
+	runtime: { type: 'integer' },
 	spoken_languages: {
 		properties: {
 			english_name: { type: 'keyword' },
