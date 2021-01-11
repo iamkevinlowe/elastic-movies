@@ -1,5 +1,5 @@
 const { Client } = require('@elastic/elasticsearch');
-const { capitalize } = require('../classes/UtilString');
+const { capitalize } = require('../utils/UtilString');
 
 class Elasticsearch {
 	/**
