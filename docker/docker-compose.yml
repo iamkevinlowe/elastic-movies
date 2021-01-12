@@ -12,10 +12,6 @@ services:
             - ../app:/usr/src/app
         ports:
             - '80:80'
-        depends_on:
-            - es01
-            - es02
-            - es03
 
     worker:
         build:
@@ -31,66 +27,14 @@ services:
             - '9000:9000'
         depends_on:
             - redis
-            - es01
-            - es02
-            - es03
-
-    es01:
-        image: elasticsearch:7.10.1
-        container_name: elastic-movies_es01
-        restart: on-failure
-        env_file:
-            ../env/es01.env
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        volumes:
-            - data01:/usr/share/elasticsearch/data
-        ports:
-            - '9200:9200'
-
-    es02:
-        image: elasticsearch:7.10.1
-        container_name: elastic-movies_es02
-        restart: on-failure
-        env_file:
-            ../env/es02.env
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        volumes:
-            - data02:/usr/share/elasticsearch/data
-
-    es03:
-        image: elasticsearch:7.10.1
-        container_name: elastic-movies_es03
-        restart: on-failure
-        env_file:
-            ../env/es03.env
-        ulimits:
-            memlock:
-                soft: -1
-                hard: -1
-        volumes:
-            - data03:/usr/share/elasticsearch/data
 
     redis:
         image: redis:latest
         container_name: elastic-movies_redis
         restart: on-failure
-        ports:
-            - '6379:6379'
         volumes:
             - dataRedis:/data
 
 volumes:
-    data01:
-        driver: local
-    data02:
-        driver: local
-    data03:
-        driver: local
     dataRedis:
         driver: local
