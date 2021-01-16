@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'production') {
 	});
 }
 
-const port = process.env.PORT;
+const port = process.env.API_PORT;
 
 app.listen(port, () => {
 	console.log(`Elastic Movies API listening at http://localhost:${port}`);

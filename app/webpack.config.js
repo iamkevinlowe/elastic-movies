@@ -40,8 +40,8 @@ module.exports = env => {
 			compress: true,
 			historyApiFallback: true,
 			host: '0.0.0.0',
-			port: 80,
-			proxy: { '/api': 'http://localhost:8080' }
+			port: process.env.WEB_PORT,
+			proxy: { '/api': `http://localhost:${process.env.API_PORT}` }
 		};
 
 		config.devtool = 'source-map';
