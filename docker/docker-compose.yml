@@ -15,6 +15,9 @@ services:
             - app-network
 
     server:
+        build:
+            context: ../.
+            dockerfile: docker/server/Dockerfile
         image: nginx:mainline-alpine
         container_name: elastic-movies_server
         restart: unless-stopped
@@ -31,7 +34,7 @@ services:
             - app-network
 
     certbot:
-        image: certbot/certbot
+        image: certbot/certbot:latest
         container_name: elastic-movies_certbot
         volumes:
             - certbot-etc:/etc/letsencrypt
