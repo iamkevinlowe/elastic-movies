@@ -14,37 +14,6 @@ services:
         networks:
             - app-network
 
-    server:
-        build:
-            context: ../.
-            dockerfile: docker/server/Dockerfile
-        image: nginx:mainline-alpine
-        container_name: elastic-movies_server
-        restart: unless-stopped
-        ports:
-            - '80:80'
-            - '443:443'
-        volumes:
-            - web-root:/var/www/html
-            - ../nginx-conf:/etc/nginx/conf.d
-            - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-        depends_on:
-            - app
-        networks:
-            - app-network
-
-    certbot:
-        image: certbot/certbot:latest
-        container_name: elastic-movies_certbot
-        volumes:
-            - certbot-etc:/etc/letsencrypt
-            - certbot-var:/var/lib/letsencrypt
-            - web-root:/var/www/html
-        depends_on:
-            - app
-        command: certonly --webroot --webroot-path=/var/www/html --email iamkevinlowe@gmail.com --agree-tos --no-eff-email --staging -d elastic-movies.com -d www.elastic-movies.com
-
     worker:
         build:
             context: ../.
@@ -68,17 +37,5 @@ services:
             - dataRedis:/data
 
 volumes:
-    certbot-etc:
-    certbot-var:
-    web-root:
-        driver: local
-        driver_opts:
-            type: none
-            device: app/dist/
-            o: bind
     dataRedis:
         driver: local
-
-networks:
-    app-network:
-        driver: bridge

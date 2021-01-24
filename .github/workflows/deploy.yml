@@ -1,0 +1,75 @@
+name: build
+
+on:
+    push:
+        branches:
+            - master
+
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v1
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+
+            - name: Login to DockerHub
+              uses: docker/login-action@v1
+              with:
+                  username: ${{ secrets.DOCKER_HUB_USERNAME }}
+                  password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+            - name: Build and push app
+              id: docker_build_app
+              uses: docker/build-push-action@v2
+              with:
+                  context: .
+                  file: ./docker/app/Dockerfile
+                  push: true
+                  tags: iamkevinlowe/elastic-movies_app:latest
+
+            - name: Build and push worker
+              id: docker_build_worker
+              uses: docker/build-push-action@v2
+              with:
+                  context: .
+                  file: ./docker/worker/Dockerfile
+                  push: true
+                  tags: iamkevinlowe/elastic-movies_worker:latest
+
+            - name: Image digests
+              run: |
+                  echo "App: ${{ steps.docker_build_app.outputs.digest }}"
+                  echo "Worker: ${{ steps.docker_build_worker.outputs.digest }}"
+
+            - name: Deploy to DigitalOcean
+              uses: appleboy/ssh-action@master
+              env:
+                  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+                  DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+              with:
+                  host: ${{ secrets.DO_IP_ADDRESS }}
+                  username: ${{ secrets.DO_USERNAME }}
+                  key: ${{ secrets.DO_KEY }}
+                  port: ${{ secrets.DO_PORT }}
+                  envs: DOCKER_HUB_USERNAME, DOCKER_HUB_PASSWORD
+                  script: |
+                      docker stop $(docker ps -aq)
+                      docker rm $(docker ps -aq)
+                      docker network rm elastic-movies_network
+                      docker login -u $DOCKER_HUB_USERNAME -p $DOCKER_HUB_PASSWORD
+                      docker pull iamkevinlowe/elastic-movies_app:latest
+                      docker pull iamkevinlowe/elastic-movies_worker:latest
+                      docker pull redis:latest
+                      docker network create elastic-movies_network
+                      docker run -d -h redis --name elastic-movies_redis --network elastic-movies_network --restart on-failure -v data_redis:/data redis:latest
+                      docker run -d --env-file env/app.env -h app --name elastic-movies_app --network elastic-movies_network --network app-network --restart on-failure -v web-root:/usr/src/app/dist iamkevinlowe/elastic-movies_app:latest
+                      docker run -d --env-file env/worker.env -h worker --name elastic-movies_worker --network elastic-movies_network -p 9000:9000 --restart on-failure iamkevinlowe/elastic-movies_worker:latest
