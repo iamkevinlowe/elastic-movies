@@ -11,7 +11,7 @@ services:
         volumes:
             - ../app:/usr/src/app
         ports:
-            - '81:80'
+            - '8000:8000'
 
     worker:
         build:
