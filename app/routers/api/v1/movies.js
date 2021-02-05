@@ -10,53 +10,18 @@ const sourceFields = [
 ];
 
 router.get('/', async (req, res) => {
-	const options = {};
+	const options = { scroll: req?.query?.scroll };
 	const body = {};
 
 	if (req.query.scroll_id) {
 		options.scroll_id = req.query.scroll_id;
 	} else {
 		options._source_includes = sourceFields;
+		options.sort = req?.query?.sort || 'popularity:desc';
 
-		if (typeof req.query.scroll !== 'undefined') {
-			options.scroll = req.query.scroll;
-		}
-
-		if (typeof req.query.size !== 'undefined') {
-			body.size = req.query.size;
-		}
-
-		if (typeof req.query.query !== 'undefined') {
-			const query = req.query.query;
-			const shouldMatches = req.query.fields
-				.map(field => {
-					let key;
-					switch (field) {
-						case 'keyword':
-							key = 'keywords.name';
-							break;
-						case 'actor':
-							key = 'credits.cast.name';
-							break;
-						case 'character':
-							key = 'credits.cast.character';
-							break;
-						default:
-							key = field;
-					}
-					return { match: { [key]: query } };
-				});
-
-			body.query = {
-				bool: { should: shouldMatches }
-			};
-		} else {
-			options.sort = 'popularity:desc';
-		}
-
-		if (typeof req.query.aggregations !== 'undefined') {
-			body.aggs = buildAggregations(req.query.aggregations);
-		}
+		body.size = req?.query?.size;
+		body.query = buildQuery(req?.query?.query, req?.query?.fields);
+		body.aggs = buildAggregations(req?.query?.aggregations);
 	}
 
 	try {
@@ -85,7 +50,35 @@ router.get('/:id', async (req, res) => {
 	}
 });
 
-const buildAggregations = aggregations => {
+const buildQuery = (query = '', fields = []) => {
+	if (!query || !fields.length) {
+		return;
+	}
+
+	const shouldMatches = fields.map(field => {
+		let key;
+		switch (field) {
+			case 'keyword':
+				key = 'keywords.name';
+				break;
+			case 'actor':
+				key = 'credits.cast.name';
+				break;
+			case 'character':
+				key = 'credits.cast.character';
+				break;
+			default:
+				key = field;
+		}
+		return { match: { [key]: query } };
+	});
+
+	return {
+		bool: { should: shouldMatches }
+	};
+};
+
+const buildAggregations = (aggregations = {}) => {
 	const response = {};
 
 	Object.keys(aggregations).forEach(name => {

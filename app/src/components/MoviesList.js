@@ -78,9 +78,12 @@ function MoviesList({ history }) {
 				const { getMovies } = await getMovieModule();
 
 				try {
-					const { body, scroll_id, total } = await getMovies({ scroll_id: scrollId });
+					const { movies: newMovies, scroll_id, total } = await getMovies({
+						scroll: '1m',
+						scroll_id: scrollId
+					});
 					setHistoryAndComponentState({
-						movies: [...movies, ...body],
+						movies: [...movies, ...newMovies],
 						scrollId: scroll_id,
 						total
 					});
