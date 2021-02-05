@@ -1,3 +1,5 @@
+import UtilRequest from '../common/utils/UtilRequest';
+
 const ENDPOINT = `${window.location.origin}/api/v1/movies/`;
 
 /**
@@ -9,12 +11,18 @@ const ENDPOINT = `${window.location.origin}/api/v1/movies/`;
  */
 export async function getMovies(params = {}) {
 	const url = new URL(ENDPOINT);
-	url.search = new URLSearchParams(params).toString();
+	url.search = UtilRequest.convertToQueryString(params);
 
 	const controller = new AbortController();
 	setTimeout(() => controller.abort(), 5000);
 
-	const response = await fetch(url, { signal: controller.signal });
+	const headers = new Headers();
+	headers.append('Content-Type', 'application/json');
+
+	const response = await fetch(url, {
+		signal: controller.signal,
+		headers
+	});
 	if (!response.ok) {
 		throw new Error(response.statusText || 'Failed to fetch movies');
 	}

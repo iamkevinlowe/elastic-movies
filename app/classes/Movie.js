@@ -165,14 +165,14 @@ class Movie {
 		}
 		const response = await esClient.request(options.scroll_id ? 'scroll' : 'search', { ...options, body });
 
-		const { hits = {}, _scroll_id } = response;
-		hits.hits = await Promise.all(hits.hits.map(async item => {
-			item._source = await this._replaceImagePaths(item._source);
-			return item;
-		}));
-		hits.scroll_id = _scroll_id;
+		if (response?.hits?.hits?.length) {
+			response.hits.hits = await Promise.all(response?.hits?.hits?.map(async item => {
+				item._source = await this._replaceImagePaths(item._source);
+				return item;
+			}));
+		}
 
-		return hits;
+		return response;
 	}
 
 	/**
