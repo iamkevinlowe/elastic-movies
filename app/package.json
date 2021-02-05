@@ -29,11 +29,13 @@
 		"bootstrap": "^4.5.3",
 		"bull": "^3.20.0",
 		"bull-board": "^1.2.0",
+		"chart.js": "^2.9.4",
 		"core-js": "^3.8.1",
 		"css-loader": "^5.0.1",
 		"express": "^4.17.1",
 		"html-webpack-plugin": "^4.5.0",
 		"jquery": "^3.5.1",
+		"qs": "^6.9.6",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0",
@@ -45,9 +47,7 @@
 		"webpack-cli": "^4.3.1"
 	},
 	"devDependencies": {
-		"chart.js": "^2.9.4",
 		"nodemon": "^2.0.6",
-		"qs": "^6.9.6",
 		"webpack-dev-server": "^3.11.1"
 	}
 }
