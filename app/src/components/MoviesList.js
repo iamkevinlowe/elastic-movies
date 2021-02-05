@@ -111,7 +111,7 @@ function MoviesList({ history }) {
 		setIsLoading(true);
 
 		const { getMovies } = await getMovieModule();
-		const params = { fields: [] };
+		const params = { scroll: '1m', fields: [] };
 
 		if (searchInputEl.current.value) {
 			params.query = searchInputEl.current.value;
@@ -125,9 +125,9 @@ function MoviesList({ history }) {
 			});
 
 		try {
-			const { body, scroll_id, total } = await getMovies(params);
+			const { movies, scroll_id, total } = await getMovies(params);
 			setHistoryAndComponentState({
-				movies: body,
+				movies,
 				scrollId: scroll_id,
 				total
 			});

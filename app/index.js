@@ -1,10 +1,14 @@
 const express = require('express');
+const qs = require('qs');
 const bodyParser = require('body-parser');
 const path = require('path');
 
 const routerApiV1 = require('./routers/api/v1');
 
 const app = express();
+
+/**	Query Parser */
+app.set('query parser', queryString => qs.parse(queryString, { depth: 50 }));
 
 /** Body Parser */
 app.use(bodyParser.urlencoded({ extended: false })); // application/x-www-form-urlencoded

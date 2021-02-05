@@ -10,7 +10,7 @@ const sourceFields = [
 ];
 
 router.get('/', async (req, res) => {
-	const options = { scroll: '1m' };
+	const options = {};
 	const body = {};
 
 	if (req.query.scroll_id) {
@@ -18,10 +18,17 @@ router.get('/', async (req, res) => {
 	} else {
 		options._source_includes = sourceFields;
 
-		if (req.query.query) {
+		if (typeof req.query.scroll !== 'undefined') {
+			options.scroll = req.query.scroll;
+		}
+
+		if (typeof req.query.size !== 'undefined') {
+			body.size = req.query.size;
+		}
+
+		if (typeof req.query.query !== 'undefined') {
 			const query = req.query.query;
 			const shouldMatches = req.query.fields
-				.split(',')
 				.map(field => {
 					let key;
 					switch (field) {
@@ -46,12 +53,22 @@ router.get('/', async (req, res) => {
 		} else {
 			options.sort = 'popularity:desc';
 		}
+
+		if (typeof req.query.aggregations !== 'undefined') {
+			body.aggs = buildAggregations(req.query.aggregations);
+		}
 	}
 
 	try {
-		const response = await Movie.fetchSearchResult(options, body);
-		const movies = response.hits.map(item => item._source);
-		res.json({ body: movies, total: response.total.value, scroll_id: response.scroll_id });
+		const fetchResponse = await Movie.fetchSearchResult(options, body);
+		const response = {
+			aggregations: fetchResponse?.aggregations,
+			movies: fetchResponse?.hits?.hits?.map(item => item._source),
+			scroll_id: fetchResponse?._scroll_id,
+			total: fetchResponse?.hits?.total?.value
+		};
+
+		res.json(response);
 	} catch (e) {
 		console.error(e.message);
 		res.status(500).json(e);
@@ -67,5 +84,65 @@ router.get('/:id', async (req, res) => {
 		res.status(500).json(e);
 	}
 });
+
+const buildAggregations = aggregations => {
+	const response = {};
+
+	Object.keys(aggregations).forEach(name => {
+		let field = aggregations[name]?.field || name;
+		const aggregation = aggregations[name]?.aggregation || 'terms';
+
+		switch (field) {
+			case 'originalLanguage':
+				field = 'original_language';
+				break;
+			case 'releaseDate':
+				field = 'release_date';
+				break;
+			case 'productionCompany':
+				field = 'production_companies.name'
+				break;
+			case 'spokenLanguage':
+				field = 'spoken_languages.name';
+				break;
+			case 'genre':
+				field = 'genres.name';
+				break;
+			case 'keyword':
+				field = 'keywords.name';
+				break;
+			case 'castGender':
+				field = 'credits.cast.gender';
+				break
+			case 'castKnownForDepartment':
+				field = 'credits.cast.known_for_department';
+				break;
+			case 'crewDepartment':
+				field = 'credits.crew.department';
+				break;
+			case 'crewGender':
+				field = 'credits.crew.gender';
+				break;
+			case 'crewJob':
+				field = 'credits.crew.job';
+				break;
+			case 'popularity':
+			case 'budget':
+			case 'revenue':
+			case 'runtime':
+			case 'status':
+				break;
+			default:
+				return;
+		}
+
+		response[name] = { [aggregation]: { field } };
+		if (typeof aggregations[name].aggregations !== 'undefined') {
+			response[name].aggs = buildAggregations(aggregations[name].aggregations);
+		}
+	});
+
+	return response;
+}
 
 module.exports = router;
