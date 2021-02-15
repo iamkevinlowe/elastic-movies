@@ -6,6 +6,17 @@ const API_HOST = 'api.themoviedb.org';
 const API_TOKEN = process.env.TMDB_API_TOKEN;
 const API_PAGE_LIMIT = 1000;
 
+const MAX_RETRIES = 5;
+
+const ERROR_CODE_CONNECTION_RESET = 'ECONNRESET';
+const ERROR_CODE_NOT_FOUND = 'ENOTFOUND';
+const ERROR_CODE_TIMEDOUT = 'ETIMEDOUT';
+const ERROR_CODES_RETRYABLE = [
+	ERROR_CODE_CONNECTION_RESET,
+	ERROR_CODE_NOT_FOUND,
+	ERROR_CODE_TIMEDOUT
+];
+
 class TheMovieDb {
 	/**
 	 * Creates an instance of TheMovieDB
@@ -20,9 +31,10 @@ class TheMovieDb {
 	 * @async
 	 * @param {string} endpoint
 	 * @param {Object} [params={}]
+	 * @param {boolean} [canRetry=true]
 	 * @returns {Promise<ApiResponse>}
 	 */
-	async request(endpoint, params = {}) {
+	async request(endpoint, params = {}, canRetry = true) {
 		const options = {
 			hostname: API_HOST,
 			port: 443,
@@ -41,7 +53,7 @@ class TheMovieDb {
 
 				res.on('data', chunk => chunks.push(chunk));
 
-				res.on('end', () => {
+				res.on('end', async () => {
 					const apiResponse = new ApiResponse();
 
 					try {
@@ -66,18 +78,75 @@ class TheMovieDb {
 						}
 
 						resolve(apiResponse);
-					} catch (e) {
-						reject(e);
+					} catch (error) {
+						console.log('ERROR!! TheMovieDB messed up on end', error);
+						if (
+							canRetry
+							&& ERROR_CODES_RETRYABLE.includes(error.code)
+						) {
+							this._retryRequest(resolve, reject, endpoint, params);
+						} else {
+							reject(error);
+						}
 					}
 				});
 
-				res.on('error', error => reject(error));
+				res.on('error', error => {
+					console.log('ERROR!! TheMovieDB messed up on response', error);
+					if (
+						canRetry
+						&& ERROR_CODES_RETRYABLE.includes(error.code)
+					) {
+						this._retryRequest(resolve, reject, endpoint, params);
+					} else {
+						reject(error);
+					}
+				});
 			});
 
-			req.on('error', error => reject(error));
+			req.on('error', error => {
+				if (
+					canRetry
+					&& ERROR_CODES_RETRYABLE.includes(error.code)
+				) {
+					this._retryRequest(resolve, reject, endpoint, params);
+				} else {
+					reject(error);
+				}
+			});
 
 			req.end()
+		}).catch(error => {
+			console.log('ERROR!! TheMovieDB messed up', error);
 		});
+	}
+
+	/**
+	 * Retries a request
+	 *
+	 * @param {function} resolve
+	 * @param {function} reject
+	 * @param {string} endpoint
+	 * @param {Object} params
+	 * @param {number} [retries=0]
+	 * @private
+	 */
+	_retryRequest(resolve, reject, endpoint, params, retries = 0) {
+		if (retries++ >= MAX_RETRIES) {
+			reject(`Failed retrying request ${retries} times`);
+			return;
+		}
+
+		setTimeout(async () => {
+			try {
+				const response = await this.request(endpoint, params, false);
+				console.log(`Retry attempt ${retries} succeeded`);
+				resolve(response);
+			} catch (error) {
+				console.log(`Retry attempt ${retries} failed`)
+				this._retryRequest(resolve, reject, endpoint, params, retries);
+			}
+		}, retries * 1000);
 	}
 }
 
