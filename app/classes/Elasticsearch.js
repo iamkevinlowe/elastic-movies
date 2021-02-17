@@ -12,7 +12,7 @@ class Elasticsearch {
 	/**
 	 * Pings Elasticsearch for connection
 	 *
-	 * @param {Number} timeout Time in milliseconds to ping Elasticsearch
+	 * @param {number} timeout Time in milliseconds to ping Elasticsearch
 	 * @returns {Promise<boolean>}
 	 * @async
 	 */
@@ -174,25 +174,30 @@ class Elasticsearch {
 			throw new Error(`Invalid endpoint: ${endpoint}`);
 		}
 
-		const response = await method.call(this._client, params, { ignore: [404] });
-		const { statusCode, body } = response;
-		if (
-			statusCode < 400
-			|| statusCode === 404
-		) {
-			return body;
+		try {
+			const response = await method.call(this._client, params, { ignore: [404] });
+			const { statusCode, body } = response;
+			if (
+				statusCode < 400
+				|| statusCode === 404
+			) {
+				return body;
+			}
+
+			console.log(response);
+
+			const errorMessage = body
+				&& body.error
+				&& body.error.caused_by
+				&& body.error.caused_by.reason
+				|| `Failed to request ${endpoint}`;
+			const error = new Error(errorMessage);
+			Object.assign(error, body.error);
+			throw error;
+		} catch (e) {
+			console.log('ERROR!! Elasticsearch messed up.', e.message);
+			throw e;
 		}
-
-		console.log(response);
-
-		const errorMessage = body
-			&& body.error
-			&& body.error.caused_by
-			&& body.error.caused_by.reason
-			|| `Failed to request ${endpoint}`;
-		const error = new Error(errorMessage);
-		Object.assign(error, body.error);
-		throw error;
 	}
 }
 

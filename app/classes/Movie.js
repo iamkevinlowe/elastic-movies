@@ -132,19 +132,25 @@ class Movie {
 		const results = [];
 		let popularResponse;
 
-		if (this._nextPopularResponse instanceof ApiResponse) {
-			popularResponse = this._nextPopularResponse;
-			this._nextPopularResponse = null;
-			Array.prototype.push.apply(results, await popularResponse.getNextResponse() || []);
-		} else if (this._nextPopularResponse === null) {
-			popularResponse = await tmdbClient.request('movie/popular', { page: 1 });
-			Array.prototype.push.apply(results, popularResponse.getResponse() || []);
-		} else {
+		try {
+			if (this._nextPopularResponse instanceof ApiResponse) {
+				popularResponse = this._nextPopularResponse;
+				this._nextPopularResponse = null;
+				Array.prototype.push.apply(results, await popularResponse.getNextResponse() || []);
+			} else if (this._nextPopularResponse === null) {
+				popularResponse = await tmdbClient.request('movie/popular', { page: 1 });
+				Array.prototype.push.apply(results, popularResponse.getResponse() || []);
+			} else {
+				this._nextPopularResponse = null;
+				return null;
+			}
+		} catch (e) {
+			console.log('Error fetching popular batched movies', e.message);
 			this._nextPopularResponse = null;
 			return null;
 		}
 
-		this._nextPopularResponse = popularResponse.hasNextResponse() ? popularResponse : -1;
+		this._nextPopularResponse = popularResponse?.hasNextResponse() ? popularResponse : -1;
 
 		return results.map(result => {
 			this._removeUnmappedProperties(result, indexMappingMovies);

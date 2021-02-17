@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
 		options.sort = req?.query?.sort || 'popularity:desc';
 
 		body.size = req?.query?.size;
-		body.query = buildQuery(req?.query?.query, req?.query?.fields);
 		body.aggs = buildAggregations(req?.query?.aggregations);
+		Object.assign(body, buildQuery(req?.query?.query));
 	}
 
 	try {
@@ -50,32 +50,92 @@ router.get('/:id', async (req, res) => {
 	}
 });
 
-const buildQuery = (query = '', fields = []) => {
-	if (!query || !fields.length) {
-		return;
-	}
+const buildQuery = (params = {}) => {
+	const bool = {
+		filter: [],
+		should: []
+	};
 
-	const shouldMatches = fields.map(field => {
-		let key;
-		switch (field) {
-			case 'keyword':
-				key = 'keywords.name';
-				break;
-			case 'actor':
-				key = 'credits.cast.name';
-				break;
+	Object.keys(params).forEach(key => {
+		const { occur, query } = params[key];
+		let { value } = params[key];
+		let field;
+
+		switch (key) {
 			case 'character':
-				key = 'credits.cast.character';
+				field = 'credits.cast.character';
 				break;
+			case 'castGender':
+				field = 'credits.cast.gender';
+				value = Array.isArray(value)
+					? value.map(value => parseInt(value, 10))
+					: parseInt(value, 10);
+				break;
+			case 'castDepartment':
+				field = 'credits.cast.known_for_department';
+				break;
+			case 'castName':
+				field = 'credits.cast.name';
+				break;
+			case 'crewDepartments':
+				field = 'credits.crew.department';
+				break;
+			case 'crewGender':
+				field = 'credits.crew.gender';
+				value = Array.isArray(value)
+					? value.map(value => parseInt(value, 10))
+					: parseInt(value, 10);
+				break;
+			case 'crewJob':
+				field = 'credits.crew.job';
+				break;
+			case 'genre':
+				field = 'genres.name';
+				break;
+			case 'keyword':
+				field = 'keywords.name';
+				break;
+			case 'originalLanguage':
+				field = 'original_language';
+				break;
+			case 'productionCompany':
+				field = 'production_companies.name';
+				break;
+			case 'releaseDate':
+				field = 'release_date';
+				break;
+			case 'spokenLanguage':
+				field = 'spoken_languages.name';
+				break;
+			case 'status':
 			default:
-				key = field;
+				field = key;
+				break;
 		}
-		return { match: { [key]: query } };
+
+		if (!bool[occur]) {
+			return;
+		}
+
+		bool[occur].push({
+			[query]: { [field]: value }
+		});
 	});
 
-	return {
-		bool: { should: shouldMatches }
-	};
+	const isEmpty = Object.keys(bool)
+		.every(occur => {
+			if (!bool[occur].length) {
+				delete bool[occur];
+				return true;
+			}
+			return false;
+		});
+
+	return isEmpty
+		? {}
+		: {
+			query: { bool }
+		};
 };
 
 const buildAggregations = (aggregations = {}) => {
@@ -93,7 +153,7 @@ const buildAggregations = (aggregations = {}) => {
 				field = 'release_date';
 				break;
 			case 'productionCompany':
-				field = 'production_companies.name'
+				field = 'production_companies.name';
 				break;
 			case 'spokenLanguage':
 				field = 'spoken_languages.name';
@@ -129,7 +189,20 @@ const buildAggregations = (aggregations = {}) => {
 				return;
 		}
 
-		response[name] = { [aggregation]: { field } };
+		const aggregationParams = {
+			field,
+			calendar_interval: aggregations[name]?.calendar_interval
+		};
+
+		if (
+			aggregation !== 'avg'
+			&& aggregation !== 'min'
+			&& aggregation !== 'max'
+		) {
+			aggregationParams.min_doc_count = 0;
+		}
+
+		response[name] = { [aggregation]: aggregationParams };
 		if (typeof aggregations[name].aggregations !== 'undefined') {
 			response[name].aggs = buildAggregations(aggregations[name].aggregations);
 		}

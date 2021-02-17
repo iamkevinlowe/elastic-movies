@@ -4,8 +4,10 @@ import React, {
 } from 'react';
 import Chart from 'chart.js';
 
-import { getMovies } from '../common/moviesAPI';
 import UtilColors from "../common/utils/UtilColors";
+
+const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
+import { getMovies } from '../common/moviesAPI';
 
 function MoviesDashboard() {
 	const [genres, setGenres] = useState([]);
@@ -13,48 +15,50 @@ function MoviesDashboard() {
 	const [keywords, setKeywords] = useState([]);
 
 	useEffect(() => {
-		getMovies({
-			size: 0,
-			aggregations: {
-				genre: {
-					aggregation: 'terms',
-					aggregations: {
-						keyword: {
-							aggregation: 'terms',
-							aggregations: {
-								avgPopularity: {
-									field: 'popularity',
-									aggregation: 'avg'
+		getMovieModule()
+			.then(({ getMovies }) => getMovies({
+				size: 0,
+				aggregations: {
+					genre: {
+						aggregation: 'terms',
+						aggregations: {
+							keyword: {
+								aggregation: 'terms',
+								aggregations: {
+									avgPopularity: {
+										field: 'popularity',
+										aggregation: 'avg'
+									}
 								}
+							},
+							avgPopularity: {
+								field: 'popularity',
+								aggregation: 'avg'
 							}
-						},
-						avgPopularity: {
-							field: 'popularity',
-							aggregation: 'avg'
 						}
-					}
-				},
-				originalLanguage: { aggregation: 'terms' },
-				releaseDate: { aggregation: 'terms' },
-				productionCompany: { aggregation: 'terms' },
-				spokenLanguage: { aggregation: 'terms' },
-				castGender: { aggregation: 'terms' },
-				castKnownForDepartment: { aggregation: 'terms' },
-				crewDepartment: { aggregation: 'terms' },
-				crewGender: { aggregation: 'terms' },
-				crewJob: { aggregation: 'terms' },
-				minBudget: { field: 'budget', aggregation: 'min' },
-				avgBudget: { field: 'budget', aggregation: 'avg' },
-				maxBudget: { field: 'budget', aggregation: 'max' },
-				minRevenue: { field: 'revenue', aggregation: 'min' },
-				avgRevenue: { field: 'revenue', aggregation: 'avg' },
-				maxRevenue: { field: 'revenue', aggregation: 'max' },
-				minRuntime: { field: 'runtime', aggregation: 'min' },
-				avgRuntime: { field: 'runtime', aggregation: 'avg' },
-				maxRuntime: { field: 'runtime', aggregation: 'max' },
-				status: { aggregation: 'terms' }
-			}
-		}).then(({ aggregations }) => setGenres(aggregations?.genre?.buckets || []));
+					},
+					originalLanguage: { aggregation: 'terms' },
+					releaseDate: { aggregation: 'terms' },
+					productionCompany: { aggregation: 'terms' },
+					spokenLanguage: { aggregation: 'terms' },
+					castGender: { aggregation: 'terms' },
+					castKnownForDepartment: { aggregation: 'terms' },
+					crewDepartment: { aggregation: 'terms' },
+					crewGender: { aggregation: 'terms' },
+					crewJob: { aggregation: 'terms' },
+					minBudget: { field: 'budget', aggregation: 'min' },
+					avgBudget: { field: 'budget', aggregation: 'avg' },
+					maxBudget: { field: 'budget', aggregation: 'max' },
+					minRevenue: { field: 'revenue', aggregation: 'min' },
+					avgRevenue: { field: 'revenue', aggregation: 'avg' },
+					maxRevenue: { field: 'revenue', aggregation: 'max' },
+					minRuntime: { field: 'runtime', aggregation: 'min' },
+					avgRuntime: { field: 'runtime', aggregation: 'avg' },
+					maxRuntime: { field: 'runtime', aggregation: 'max' },
+					status: { aggregation: 'terms' }
+				}
+			}))
+			.then(({ aggregations }) => setGenres(aggregations?.genre?.buckets || []));
 	}, []);
 
 	useEffect(() => {
