@@ -5,6 +5,8 @@ import React, {
 } from 'react';
 import { Link } from 'react-router-dom';
 
+import MoviesFilter from './MoviesFilter';
+
 const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
 const getVoteBadgeClassNames = vote => {
 	const classNames = ['badge', 'rounded-pill', 'text-white'];
@@ -44,7 +46,7 @@ function MoviesList({ history }) {
 	} = history.location.state || {};
 
 	const [isLoading, setIsLoading] = useState(false);
-	const [checkBoxStates, setCheckBoxStates] = useState({ title: true, keyword: true, actor: true, character: true });
+	const [checkBoxStates, setCheckBoxStates] = useState({ title: true, keyword: true, castName: true, character: true });
 	const [movies, setMovies] = useState(stateMovies);
 	const [scrollId, setScrollId] = useState(stateScrollId);
 	const [total, setTotal] = useState(stateTotal);
@@ -114,18 +116,25 @@ function MoviesList({ history }) {
 		setIsLoading(true);
 
 		const { getMovies } = await getMovieModule();
-		const params = { scroll: '1m', fields: [] };
+		const params = {
+			scroll: '1m',
+			query: {}
+		};
 
-		if (searchInputEl.current.value) {
-			params.query = searchInputEl.current.value;
+		const { value } = searchInputEl.current;
+
+		if (value) {
+			Object.keys(checkBoxStates)
+				.forEach(field => {
+					if (checkBoxStates[field]) {
+						params.query[field] = {
+							occur: 'should',
+							query: 'match',
+							value
+						}
+					}
+				});
 		}
-
-		Object.keys(checkBoxStates)
-			.forEach(field => {
-				if (checkBoxStates[field]) {
-					params.fields.push(field);
-				}
-			});
 
 		try {
 			const { movies, scroll_id, total } = await getMovies(params);
@@ -167,134 +176,140 @@ function MoviesList({ history }) {
 
 	return (
 		<div
-			className="container d-flex flex-column"
+			className="container-fluid"
 			style={styles.container}>
-			<div className="row mb-2">
-				<div className="col">
-					<form onSubmit={onSearchMoviesSubmit}>
-						<div className="input-group mb-2">
-							<input
-								type="text"
-								className="form-control"
-								placeholder="Search movies..."
-								aria-label="Search movies"
-								aria-describedby="button-addon"
-								ref={searchInputEl}
-								disabled={isLoading} />
-							<div className="input-group-append">
-								<button
-									className="btn btn-outline-secondary"
-									type="submit"
-									id="button-addon"
-									disabled={isLoading}>
-									{isLoading
-										? (
-											<>
-												<span
-													className="spinner-border spinner-border-sm me-1"
-													role="status"
-													aria-hidden="true">
-												</span>
-												Loading...
-											</>
-										)
-										: 'Search'}
-								</button>
-							</div>
-						</div>
-
-						<div className="text-center">
-							<div className="form-check form-check-inline form-switch">
-								<input
-									className="form-check-input"
-									id="checkboxTitle"
-									type="checkbox"
-									name="title"
-									checked={checkBoxStates.title}
-									onChange={onCheckboxChange} />
-								<label
-									className="form-check-label"
-									htmlFor="checkboxTitle">Title</label>
-							</div>
-							<div className="form-check form-check-inline form-switch">
-									<input
-										className="form-check-input"
-										id="checkboxKeyword"
-										type="checkbox"
-										name="keyword"
-										checked={checkBoxStates.keyword}
-										onChange={onCheckboxChange} />
-									<label
-										className="form-check-label"
-										htmlFor="checkboxKeyword">Keyword</label>
-								</div>
-							<div className="form-check form-check-inline form-switch">
-									<input
-										className="form-check-input"
-										id="checkboxActor"
-										type="checkbox"
-										name="actor"
-										checked={checkBoxStates.actor}
-										onChange={onCheckboxChange} />
-									<label
-										className="form-check-label"
-										htmlFor="checkboxActor">Actor/Actress</label>
-								</div>
-							<div className="form-check form-check-inline form-switch">
-								<input
-									className="form-check-input"
-									id="checkboxCharacter"
-									type="checkbox"
-									name="character"
-									checked={checkBoxStates.character}
-									onChange={onCheckboxChange} />
-								<label
-									className="form-check-label"
-									htmlFor="checkboxCharacter">Character</label>
-							</div>
-						</div>
-					</form>
+			<div className="row h-100">
+				<div className="col-md-3 h-100 overflow-auto">
+					<MoviesFilter />
 				</div>
-			</div>
-
-			<div
-				className="row overflow-auto"
-				ref={moviesContainerEl}>
-				{movies.map(movie => (
-					<div
-						className="col-3 mb-2"
-						key={movie.id}>
-						<Link
-							className="text-decoration-none"
-							data-id={movie.id}
-							onClick={onMovieClick}
-							to={{
-								pathname: `/movies/${movie.id}`,
-								movie
-							}}>
-							<div className="card text-secondary position-relative">
-								<img
-									className="card-img-top"
-									src={movie.poster_path || 'https://picsum.photos/253/380'}
-									alt={`${movie.title} Poster`}
-									style={styles.cardImage} />
-								<span
-									className={getVoteBadgeClassNames(movie.vote_average)}
-									style={styles.cardVoteBadge}>
-									{movie.vote_average}
-								</span>
-								<div className="card-body">
-									<h5 className="card-title">{movie.title}</h5>
-									<small
-										className="text-muted"
-										style={styles.cardReleaseDate}>
-										{(new Date(movie.release_date)).toDateString()}
-									</small>
+				<div className="col-md-9 h-100 d-flex flex-column">
+					<div className="row mb-2">
+						<div className="col">
+							<form onSubmit={onSearchMoviesSubmit}>
+								<div className="input-group mb-2">
+									<input
+										type="text"
+										className="form-control"
+										placeholder="Search movies..."
+										aria-label="Search movies"
+										aria-describedby="button-addon"
+										ref={searchInputEl}
+										disabled={isLoading} />
+									<div className="input-group-append">
+										<button
+											className="btn btn-outline-secondary"
+											type="submit"
+											id="button-addon"
+											disabled={isLoading}>
+											{isLoading
+												? (
+													<>
+														<span
+															className="spinner-border spinner-border-sm me-1"
+															role="status"
+															aria-hidden="true">
+														</span>
+														Loading...
+													</>
+												)
+												: 'Search'}
+										</button>
+									</div>
 								</div>
-							</div>
-						</Link>
+
+								<div className="text-center">
+									<div className="form-check form-check-inline form-switch">
+										<input
+											className="form-check-input"
+											id="checkboxTitle"
+											type="checkbox"
+											name="title"
+											checked={checkBoxStates.title}
+											onChange={onCheckboxChange} />
+										<label
+											className="form-check-label"
+											htmlFor="checkboxTitle">Title</label>
+									</div>
+									<div className="form-check form-check-inline form-switch">
+											<input
+												className="form-check-input"
+												id="checkboxKeyword"
+												type="checkbox"
+												name="keyword"
+												checked={checkBoxStates.keyword}
+												onChange={onCheckboxChange} />
+											<label
+												className="form-check-label"
+												htmlFor="checkboxKeyword">Keyword</label>
+										</div>
+									<div className="form-check form-check-inline form-switch">
+											<input
+												className="form-check-input"
+												id="checkboxCastName"
+												type="checkbox"
+												name="castName"
+												checked={checkBoxStates.castName}
+												onChange={onCheckboxChange} />
+											<label
+												className="form-check-label"
+												htmlFor="checkboxCastName">Actor/Actress</label>
+										</div>
+									<div className="form-check form-check-inline form-switch">
+										<input
+											className="form-check-input"
+											id="checkboxCharacter"
+											type="checkbox"
+											name="character"
+											checked={checkBoxStates.character}
+											onChange={onCheckboxChange} />
+										<label
+											className="form-check-label"
+											htmlFor="checkboxCharacter">Character</label>
+									</div>
+								</div>
+							</form>
+						</div>
 					</div>
-				))}
+					<div
+						className="row overflow-auto"
+						ref={moviesContainerEl}>
+						{movies.map(movie => (
+							<div
+								className="col-3 mb-2"
+								key={movie.id}>
+								<Link
+									className="text-decoration-none"
+									data-id={movie.id}
+									onClick={onMovieClick}
+									to={{
+										pathname: `/movies/${movie.id}`,
+										movie
+									}}>
+									<div className="card text-secondary position-relative">
+										<img
+											className="card-img-top"
+											src={movie.poster_path || 'https://picsum.photos/253/380'}
+											alt={`${movie.title} Poster`}
+											style={styles.cardImage} />
+										<span
+											className={getVoteBadgeClassNames(movie.vote_average)}
+											style={styles.cardVoteBadge}>
+											{movie.vote_average}
+										</span>
+										<div className="card-body">
+											<h5 className="card-title">{movie.title}</h5>
+											<small
+												className="text-muted"
+												style={styles.cardReleaseDate}>
+												{(new Date(movie.release_date)).toDateString()}
+											</small>
+										</div>
+									</div>
+								</Link>
+							</div>
+						))}
+					</div>
+				</div>
 			</div>
 		</div>
 	);

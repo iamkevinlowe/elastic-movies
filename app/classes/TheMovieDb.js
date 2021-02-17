@@ -80,6 +80,7 @@ class TheMovieDb {
 						resolve(apiResponse);
 					} catch (error) {
 						console.log('ERROR!! TheMovieDB messed up on end', error);
+						console.log('Chunks:', chunks.join(''));
 						if (
 							canRetry
 							&& ERROR_CODES_RETRYABLE.includes(error.code)

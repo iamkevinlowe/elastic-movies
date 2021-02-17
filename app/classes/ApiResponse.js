@@ -41,7 +41,7 @@ class ApiResponse {
 	/**
 	 * Returns true if there is a next request callback
 	 *
-	 * @returns {Boolean}
+	 * @returns {boolean}
 	 */
 	hasNextResponse() {
 		return !!this._nextRequestCallback;
@@ -54,10 +54,7 @@ class ApiResponse {
 	 * @returns {Promise<*|null>}
 	 */
 	async getNextResponse() {
-		if (
-			this._nextRequestCallback
-			&& typeof this._nextRequestCallback === 'function'
-		) {
+		if (typeof this?._nextRequestCallback === 'function') {
 			return new Promise(resolve => {
 				const promise = this._nextRequestCallback();
 				this._nextRequestCallback = null;
@@ -67,6 +64,8 @@ class ApiResponse {
 					this._response = response._response;
 					this._nextRequestCallback = response._nextRequestCallback;
 					resolve(this._response);
+				}).catch(error => {
+					console.log('Error getting next response', error.message);
 				});
 			});
 		}
