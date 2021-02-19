@@ -35,7 +35,12 @@ function MovieFilterItem({ title = '', field = '', items = [], onFieldKeyClick =
 			activeKeys.push(key);
 		}
 
-		onFieldKeyClick(field, activeKeys);
+		onFieldKeyClick(field, activeKeys.map(value => ({
+			occur: 'filter',
+			query: 'term',
+			value,
+			field
+		})));
 		setActiveKeys([...activeKeys]);
 	};
 
