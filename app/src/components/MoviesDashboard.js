@@ -42,7 +42,7 @@ function MoviesDashboard() {
 					productionCompany: { aggregation: 'terms' },
 					spokenLanguage: { aggregation: 'terms' },
 					castGender: { aggregation: 'terms' },
-					castKnownForDepartment: { aggregation: 'terms' },
+					castDepartment: { aggregation: 'terms' },
 					crewDepartment: { aggregation: 'terms' },
 					crewGender: { aggregation: 'terms' },
 					crewJob: { aggregation: 'terms' },

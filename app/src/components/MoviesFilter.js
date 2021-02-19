@@ -1,140 +1,60 @@
 import React, {
-	useEffect,
 	useState
 } from 'react';
 
 import MovieFilterItem from './MovieFilterItem';
 
-const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
+const aggregationTitleMap = {
+	genre: 'Genre',
+	originalLanguage: 'Original Language',
+	spokenLanguage: 'Spoken Language',
+	status: 'Status',
+	productionCompany: 'Production Company',
+	castDepartment: 'Cast Known For Department',
+	castGender: 'Cast Gender',
+	crewDepartment: 'Crew Department',
+	crewJob: 'Crew Job',
+	crewGender: 'Crew Gender',
+	keyword: 'Keyword',
+	releaseDate: 'Release Date'
+};
 
-function MoviesFilter() {
-	const [query, setQuery] = useState({});
-	const [castGenders, setCastGenders] = useState([]);
-	const [castKnownForDepartments, setCastKnownForDepartments] =  useState([]);
-	const [crewDepartments, setCrewDepartments] =  useState([]);
-	const [crewGenders, setCrewGenders] = useState([]);
-	const [crewJobs, setCrewJobs] = useState([]);
-	const [genres, setGenres] = useState([]);
-	const [keywords, setKeywords] = useState([]);
-	const [originalLanguages, setOriginalLanguages] = useState([]);
-	const [productionCompanies, setProductionCompanies] = useState([]);
-	const [releaseDates, setReleaseDates] = useState([]);
-	const [spokenLanguages, setSpokenLanguages] = useState([]);
-	const [statuses, setStatuses] = useState([]);
+const sortAggregations = aggregations => {
+	return Object.keys(aggregationTitleMap).reduce((memo, key) => {
+			memo[key] = aggregations[key] || [];
+			return memo;
+	}, {});
+};
 
-	useEffect(() => {
-		getMovieModule()
-			.then(({ getMovies }) => getMovies({
-				size: 0,
-				aggregations: {
-					genre: { aggregation: 'terms' },
-					keyword: { aggregation: 'terms' },
-					originalLanguage: { aggregation: 'terms' },
-					releaseDate: { aggregation: 'date_histogram', calendar_interval: 'year' },
-					productionCompany: { aggregation: 'terms' },
-					spokenLanguage: { aggregation: 'terms' },
-					castGender: { aggregation: 'terms' },
-					castKnownForDepartment: { aggregation: 'terms' },
-					crewDepartment: { aggregation: 'terms' },
-					crewGender: { aggregation: 'terms' },
-					crewJob: { aggregation: 'terms' },
-					status: { aggregation: 'terms' }
-				},
-				query
-			}))
-			.then(({ aggregations }) => {
-				setCastGenders(aggregations?.castGender?.buckets || []);
-				setCastKnownForDepartments(aggregations?.castKnownForDepartment?.buckets || []);
-				setCrewDepartments(aggregations?.crewDepartment?.buckets || []);
-				setCrewGenders(aggregations?.crewGender?.buckets || []);
-				setCrewJobs(aggregations?.crewJob?.buckets || []);
-				setGenres(aggregations?.genre?.buckets || []);
-				setKeywords(aggregations?.keyword?.buckets || []);
-				setOriginalLanguages(aggregations?.originalLanguage?.buckets || []);
-				setProductionCompanies(aggregations?.productionCompany?.buckets || []);
-				setReleaseDates(aggregations?.releaseDate?.buckets || []);
-				setSpokenLanguages(aggregations?.spokenLanguage?.buckets || []);
-				setStatuses(aggregations?.status?.buckets || []);
-			});
-	}, [query]);
+function MoviesFilter({ setFilters = () => null, aggregations = {} }) {
+	const [queriesByField, setQueriesByField] = useState({});
 
-	const onFieldKeyClick = (field, value) => {
-		if (value.length) {
-			query[field] = {
-				occur: 'filter',
-				query: 'terms',
-				value
-			};
+	const onFieldKeyClick = (field, values) => {
+		if (values.length) {
+			queriesByField[field] = values;
 		} else {
-			delete query[field];
+			delete queriesByField[field];
 		}
 
-		setQuery({...query});
-	}
+		const query = Object.values(queriesByField)
+			.reduce((memo, queries) => memo.concat(queries), []);
+
+		setFilters(query);
+
+		setQueriesByField({ ...queriesByField });
+	};
 
 	return (
 		<>
 			<h5>Movies Filter</h5>
-			<MovieFilterItem
-				title="Genre"
-				field="genre"
-				items={genres}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Original Language"
-				field="originalLanguage"
-				items={originalLanguages}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Spoken Language"
-				field="spokenLanguage"
-				items={spokenLanguages}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Status"
-				field="status"
-				items={statuses}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Production Company"
-				field="productionCompany"
-				items={productionCompanies}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Cast Known For Department"
-				field="castDepartment"
-				items={castKnownForDepartments}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Cast Gender"
-				field="castGender"
-				items={castGenders}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Crew Department"
-				field="crewDepartment"
-				items={crewDepartments}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Crew Job"
-				field="crewJob"
-				items={crewJobs}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Crew Gender"
-				field="crewGender"
-				items={crewGenders}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Keyword"
-				field="keyword"
-				items={keywords}
-				onFieldKeyClick={onFieldKeyClick} />
-			<MovieFilterItem
-				title="Release Date"
-				field="releaseDate"
-				items={releaseDates}
-				onFieldKeyClick={onFieldKeyClick} />
+			{Object.keys(sortAggregations(aggregations)).map(key => (
+				<MovieFilterItem
+					key={key}
+					field={key}
+					title={aggregationTitleMap[key]}
+					items={aggregations[key]}
+					onFieldKeyClick={onFieldKeyClick} />
+			))}
 		</>
 	);
 }

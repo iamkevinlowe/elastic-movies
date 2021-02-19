@@ -14,7 +14,7 @@ export async function getMovies(params = {}) {
 	url.search = UtilRequest.convertToQueryString(params);
 
 	const controller = new AbortController();
-	setTimeout(() => controller.abort(), 5000);
+	setTimeout(() => controller.abort(), 60000);
 
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json');

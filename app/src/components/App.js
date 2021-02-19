@@ -8,7 +8,7 @@ import {
 
 import NavBar from './NavBar';
 import Movie from './Movie';
-import MoviesList from './MoviesList';
+import Movies from './Movies';
 import MoviesDashboard from './MoviesDashboard';
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
 
 			<Switch>
 				<Route exact path="/movies/:id" component={Movie} />
-				<Route exact path="/movies" component={MoviesList} />
+				<Route exact path="/movies" component={Movies} />
 				<Route exact path="/" component={MoviesDashboard} />
 				<Redirect to="/" />
 			</Switch>
