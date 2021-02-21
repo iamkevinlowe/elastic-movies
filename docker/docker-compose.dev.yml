@@ -8,8 +8,11 @@ services:
         container_name: elastic-movies_app
         env_file:
             - ../env/app.dev.env
+        networks:
+            - elastic-movies
         volumes:
             - ../app:/usr/src/app
+            - /usr/src/app/node_modules
         ports:
             - '8000:8000'
 
@@ -21,8 +24,11 @@ services:
         container_name: elastic-movies_worker
         env_file:
             - ../env/worker.dev.env
+        networks:
+            - elastic-movies
         volumes:
-            - ../app:/usr/src/worker
+            - ../app:/usr/src/app
+            - /usr/src/app/node_modules
         ports:
             - '9000:9000'
         depends_on:
@@ -32,8 +38,14 @@ services:
         image: redis:latest
         container_name: elastic-movies_redis
         restart: on-failure
+        networks:
+            - elastic-movies
         volumes:
             - dataRedis:/data
+
+networks:
+    elastic-movies:
+        driver: bridge
 
 volumes:
     dataRedis:

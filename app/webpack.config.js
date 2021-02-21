@@ -45,6 +45,9 @@ module.exports = env => {
 		};
 
 		config.devtool = 'source-map';
+		config.mode = 'development';
+	} else {
+		config.mode = 'production';
 	}
 
 	return config;

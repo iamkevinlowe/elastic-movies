@@ -1,8 +1,3 @@
-FROM node:14
-WORKDIR /usr/src/worker
-COPY app/package*.json ./
-RUN npm install
-# RUN npm ci --only=production
-COPY app .
+FROM iamkevinlowe/elastic-movies_app:latest
 EXPOSE 9000
 CMD ["npm", "run", "worker:dev"]
