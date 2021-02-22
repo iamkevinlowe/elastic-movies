@@ -95,7 +95,7 @@ function MoviesList({ movies = [], scrollId = null, total = 0, fetchNextPage = (
 							pathname: `/movies/${movie.id}`,
 							movie
 						}}>
-						<div className="card text-secondary position-relative">
+						<div className="card text-secondary">
 							<img
 								className="card-img-top"
 								src={movie.poster_path || 'https://picsum.photos/253/380'}

@@ -160,6 +160,7 @@ const convertFieldToESMapping = field => {
 		case 'revenue':
 		case 'runtime':
 		case 'status':
+		case 'title':
 			return field;
 		default:
 			return null;
