@@ -18,7 +18,7 @@ function MovieFilterItem({ title = '', field = '', items = [], onFieldKeyClick =
 			case 'spokenLanguage':
 				return getNameFromCode(key);
 			case 'releaseDate':
-				return new Date(key).toLocaleDateString();
+				return new Date(key).getUTCFullYear();
 			default:
 				return key;
 		}
@@ -27,7 +27,11 @@ function MovieFilterItem({ title = '', field = '', items = [], onFieldKeyClick =
 	const onListItemClick = e => {
 		e.preventDefault();
 
-		const { key } = e.currentTarget.dataset;
+		let { key } = e.currentTarget.dataset;
+
+		if (field === 'releaseDate') {
+			key = parseInt(key, 10);
+		}
 
 		if (activeKeys.includes(key)) {
 			activeKeys.splice(activeKeys.indexOf(key), 1);
@@ -35,12 +39,27 @@ function MovieFilterItem({ title = '', field = '', items = [], onFieldKeyClick =
 			activeKeys.push(key);
 		}
 
-		onFieldKeyClick(field, activeKeys.map(value => ({
-			occur: 'filter',
-			query: 'term',
-			value,
-			field
-		})));
+		onFieldKeyClick(field, activeKeys.map(value => {
+			const filterParams = {
+				occur: 'filter',
+				field
+			};
+
+			if (field === 'releaseDate') {
+				const year = new Date(parseInt(value, 10)).getUTCFullYear();
+
+				filterParams.query = 'range';
+				filterParams.value = {
+					gte: `${year}-01-01`,
+					lt: `${year}-12-31`
+				};
+			} else {
+				filterParams.query = 'term';
+				filterParams.value = value;
+			}
+
+			return filterParams;
+		}));
 		setActiveKeys([...activeKeys]);
 	};
 

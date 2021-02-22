@@ -16,7 +16,7 @@ const aggregationTitleMap = {
 	crewJob: 'Crew Job',
 	crewGender: 'Crew Gender',
 	keyword: 'Keyword',
-	releaseDate: 'Release Date'
+	releaseDate: 'Release Year'
 };
 
 const sortAggregations = aggregations => {
