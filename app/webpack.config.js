@@ -41,7 +41,10 @@ module.exports = env => {
 			historyApiFallback: true,
 			host: '0.0.0.0',
 			port: process.env.WEB_PORT,
-			proxy: { '/api': `http://localhost:${process.env.API_PORT}` }
+			proxy: {
+				'/api': `http://localhost:${process.env.API_PORT}`,
+				'/queue': 'http://worker:9000'
+			}
 		};
 
 		config.devtool = 'source-map';
