@@ -62,9 +62,14 @@ function Movies({ history }) {
 			return;
 		}
 
+		const sort = searches.length || filters.length
+			? '_score:desc'
+			: 'popularity:desc'
+
 		const params = {
 			scroll: '1m',
 			aggregations,
+			sort,
 			query: [...searches, ...filters]
 		};
 
