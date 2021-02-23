@@ -57,6 +57,7 @@ class TheMovieDb {
 					const apiResponse = new ApiResponse();
 					if (res.statusCode !== 200 || !/application\/json/.test(res.headers['content-type'])) {
 						// 502, Bad Gateway
+						// 404, Not Found
 						console.log('ERROR!! TheMoveDB messed up on end Unexpected response: ', res, chunks.join(''));
 						reject(new Error(res.statusMessage));
 						return;
