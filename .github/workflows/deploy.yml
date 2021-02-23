@@ -71,4 +71,4 @@ jobs:
                       docker network inspect elastic-movies_network > /dev/null 2>&1 || docker network create elastic-movies_network
                       docker run -d -h redis --name elastic-movies_redis --network elastic-movies_network --restart on-failure -v data_redis:/data redis:latest
                       docker run -d --env-file elastic-movies/env/app.env -h app --name elastic-movies_app --network elastic-movies_network --restart on-failure iamkevinlowe/elastic-movies_app:latest
-                      docker run -d --env-file elastic-movies/env/worker.env -h worker --name elastic-movies_worker --network elastic-movies_network -p 9000:9000 --restart on-failure iamkevinlowe/elastic-movies_worker:latest
+                      docker run -d --env-file elastic-movies/env/worker.env -h worker --name elastic-movies_worker --network elastic-movies_network --restart on-failure iamkevinlowe/elastic-movies_worker:latest
