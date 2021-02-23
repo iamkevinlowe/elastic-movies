@@ -7,12 +7,12 @@ import Chart from 'chart.js';
 import UtilColors from "../common/utils/UtilColors";
 
 const getMovieModule = () => import(/* webpackChunkName: 'MoviesAPI' */ '../common/moviesAPI');
-import { getMovies } from '../common/moviesAPI';
 
 function MoviesDashboard() {
 	const [genres, setGenres] = useState([]);
 	const [selectedGenre, setSelectedGenre] = useState(null);
 	const [keywords, setKeywords] = useState([]);
+	const [releaseDates, setReleaseDates] = useState([]);
 
 	useEffect(() => {
 		getMovieModule()
@@ -38,7 +38,7 @@ function MoviesDashboard() {
 						}
 					},
 					originalLanguage: { aggregation: 'terms' },
-					releaseDate: { aggregation: 'terms' },
+					releaseDate: { aggregation: 'date_histogram', calendar_interval: 'year' },
 					productionCompany: { aggregation: 'terms' },
 					spokenLanguage: { aggregation: 'terms' },
 					castGender: { aggregation: 'terms' },
@@ -58,7 +58,10 @@ function MoviesDashboard() {
 					status: { aggregation: 'terms' }
 				}
 			}))
-			.then(({ aggregations }) => setGenres(aggregations?.genre?.buckets || []));
+			.then(({ aggregations }) => {
+				setGenres(aggregations?.genre?.buckets || []);
+				setReleaseDates(aggregations?.releaseDate?.buckets || []);
+			});
 	}, []);
 
 	useEffect(() => {
@@ -97,7 +100,7 @@ function MoviesDashboard() {
 		});
 
 		const chart = new Chart(
-			document.getElementById('genres_chart'),
+			document.getElementById('genres-chart'),
 			{
 				type: 'bar',
 				data: {
@@ -178,7 +181,7 @@ function MoviesDashboard() {
 		});
 
 		const chart = new Chart(
-			document.getElementById('keywords_chart'),
+			document.getElementById('keywords-chart'),
 			{
 				type: 'bar',
 				data: {
@@ -216,6 +219,59 @@ function MoviesDashboard() {
 		return () => chart.destroy();
 	}, [selectedGenre, keywords]);
 
+	useEffect(() => {
+		if (!releaseDates.length) {
+			return;
+		}
+
+		const labels = [];
+		const dataset = [];
+
+		releaseDates.forEach(({ key, doc_count }) => {
+			labels.push(new Date(key).getUTCFullYear());
+			dataset.push(doc_count);
+		});
+
+		const chart = new Chart(
+			document.getElementById('release-dates-chart'),
+			{
+				type: 'bar',
+				data: {
+					datasets: [{
+						label: 'Release Year',
+						data: dataset,
+						backgroundColor: UtilColors.getChartPalette()[4]
+					}],
+					labels
+				},
+				options: {
+					scales: {
+						xAxes: [{
+							display: false,
+							barPercentage: 1.3,
+							ticks: {
+								max: dataset.length,
+							}
+						}, {
+							display: true,
+							ticks: {
+								autoSkip: true,
+								max: labels.length,
+							}
+						}],
+						yAxes: [{
+							ticks: {
+								beginAtZero: true
+							}
+						}]
+					}
+				}
+			}
+		);
+
+		return () => chart.destroy();
+	}, [releaseDates]);
+
 	return (
 		<div className="container">
 			<div className="row overflow-auto">
@@ -223,7 +279,7 @@ function MoviesDashboard() {
 					? <div className="col-lg-6 mb-2">
 						<div className="card">
 							<div className="card-body">
-								<canvas id="genres_chart"/>
+								<canvas id="genres-chart" />
 							</div>
 						</div>
 					</div>
@@ -232,7 +288,18 @@ function MoviesDashboard() {
 					? <div className="col-lg-6 mb-2">
 						<div className="card">
 							<div className="card-body">
-								<canvas id="keywords_chart"/>
+								<canvas id="keywords-chart" />
+							</div>
+						</div>
+					</div>
+					: null}
+			</div>
+			<div className="row overflow-auto">
+				{releaseDates.length
+					? <div className="col-lg-6 mb-2">
+						<div className="card">
+							<div className="card-body">
+								<canvas id="release-dates-chart" />
 							</div>
 						</div>
 					</div>
