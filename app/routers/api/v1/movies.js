@@ -154,7 +154,7 @@ const convertFieldToESMapping = field => {
 		case 'releaseDate':
 			return 'release_date';
 		case 'spokenLanguage':
-			return 'spoken_languages.name';
+			return 'spoken_languages.iso_639_1';
 		case 'popularity':
 		case 'budget':
 		case 'revenue':
