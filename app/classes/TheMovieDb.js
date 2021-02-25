@@ -1,6 +1,7 @@
 const https = require('https');
 const querystring = require('querystring');
 const ApiResponse = require('./ApiResponse');
+const Elasticsearch = require('./Elasticsearch');
 
 const API_HOST = 'api.themoviedb.org';
 const API_TOKEN = process.env.TMDB_API_TOKEN;
@@ -16,6 +17,8 @@ const ERROR_CODES_RETRYABLE = [
 	ERROR_CODE_NOT_FOUND,
 	ERROR_CODE_TIMEDOUT
 ];
+
+const esClient = new Elasticsearch({ node: process.env.ES_HOST });
 
 class TheMovieDb {
 	/**
@@ -35,17 +38,7 @@ class TheMovieDb {
 	 * @returns {Promise<ApiResponse>}
 	 */
 	async request(endpoint, params = {}, canRetry = true) {
-		const options = {
-			hostname: API_HOST,
-			port: 443,
-			path: `/3/${endpoint}?${querystring.stringify(params)}`,
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${API_TOKEN}`,
-				'Content-Type': 'application/json;charset=utf-8',
-				'Connection': 'keep-alive'
-			}
-		};
+		const options = this._getRequestOptions(endpoint, params);
 
 		return new Promise((resolve, reject) => {
 			const req = https.request(options, res => {
@@ -54,17 +47,24 @@ class TheMovieDb {
 				res.on('data', chunk => chunks.push(chunk));
 
 				res.on('end', async () => {
-					const apiResponse = new ApiResponse();
-					if (res.statusCode !== 200 || !/application\/json/.test(res.headers['content-type'])) {
-						// 502, Bad Gateway
-						// 404, Not Found
-						console.log('ERROR!! TheMoveDB messed up on end Unexpected response: ', res, chunks.join(''));
+					if (
+						res.statusCode !== 200
+						|| !/application\/json/.test(res.headers['content-type'])
+					) {
+						await this._handleError({
+							message: 'Failed on response end',
+							requestParams: this._getRequestOptions(endpoint, params, true),
+							responseCode: res.statusCode,
+							responseMessage: res.statusMessage,
+							responseBody: chunks.join('')
+						});
 						reject(new Error(res.statusMessage));
 						return;
 					}
 
 					try {
 						const response = JSON.parse(chunks.join(''));
+						const apiResponse = new ApiResponse();
 
 						if (
 							typeof response.page !== 'undefined'
@@ -86,38 +86,62 @@ class TheMovieDb {
 
 						resolve(apiResponse);
 					} catch (error) {
-						console.log('ERROR!! TheMovieDB messed up on end', error);
-						console.log('Chunks:', chunks.join(''));
+						await this._handleError({
+							message: 'Failed on response end',
+							requestParams: this._getRequestOptions(endpoint, params, true),
+							responseCode: res.statusCode,
+							responseMessage: res.statusMessage,
+							responseBody: chunks.join(''),
+							errorCode: error.code,
+							errorMessage: error.message
+						});
+
 						if (
 							canRetry
 							&& ERROR_CODES_RETRYABLE.includes(error.code)
 						) {
-							this._retryRequest(resolve, reject, endpoint, params);
+							await this._retryRequest(resolve, reject, endpoint, params);
 						} else {
 							reject(error);
 						}
 					}
 				});
 
-				res.on('error', error => {
-					console.log('ERROR!! TheMovieDB messed up on response', error);
+				res.on('error', async error => {
+					await this._handleError({
+						message: 'Failed on response error',
+						requestParams: this._getRequestOptions(endpoint, params, true),
+						responseCode: res.statusCode,
+						responseMessage: res.statusMessage,
+						responseBody: chunks.join(''),
+						errorCode: error.code,
+						errorMessage: error.message
+					});
+
 					if (
 						canRetry
 						&& ERROR_CODES_RETRYABLE.includes(error.code)
 					) {
-						this._retryRequest(resolve, reject, endpoint, params);
+						await this._retryRequest(resolve, reject, endpoint, params);
 					} else {
 						reject(error);
 					}
 				});
 			});
 
-			req.on('error', error => {
+			req.on('error', async error => {
+				await this._handleError({
+					message: 'Failed on request error',
+					requestParams: this._getRequestOptions(endpoint, params, true),
+					errorCode: error.code,
+					errorMessage: error.message
+				});
+
 				if (
 					canRetry
 					&& ERROR_CODES_RETRYABLE.includes(error.code)
 				) {
-					this._retryRequest(resolve, reject, endpoint, params);
+					await this._retryRequest(resolve, reject, endpoint, params);
 				} else {
 					reject(error);
 				}
@@ -130,8 +154,32 @@ class TheMovieDb {
 	}
 
 	/**
+	 * Returns request options
+	 *
+	 * @param {string} endpoint
+	 * @param {object} params
+	 * @param {boolean} [maskToken=false]
+	 * @returns {{path: string, headers: {Authorization: string, Connection: string, "Content-Type": string}, hostname: string, method: string, port: number}}
+	 * @private
+	 */
+	_getRequestOptions(endpoint, params, maskToken = false) {
+		return {
+			hostname: API_HOST,
+			port: 443,
+			path: `/3/${endpoint}?${querystring.stringify(params)}`,
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${maskToken ? '****' : API_TOKEN}`,
+				'Content-Type': 'application/json;charset=utf-8',
+				Connection: 'keep-alive'
+			}
+		};
+	}
+
+	/**
 	 * Retries a request
 	 *
+	 * @async
 	 * @param {function} resolve
 	 * @param {function} reject
 	 * @param {string} endpoint
@@ -139,8 +187,13 @@ class TheMovieDb {
 	 * @param {number} [retries=0]
 	 * @private
 	 */
-	_retryRequest(resolve, reject, endpoint, params, retries = 0) {
+	async _retryRequest(resolve, reject, endpoint, params, retries = 0) {
 		if (retries++ >= MAX_RETRIES) {
+			await this._handleError({
+				message: 'Failed on request retry',
+				requestParams: this._getRequestOptions(endpoint, params, true),
+				retries
+			});
 			reject(`Failed retrying request ${retries} times`);
 			return;
 		}
@@ -152,9 +205,25 @@ class TheMovieDb {
 				resolve(response);
 			} catch (error) {
 				console.log(`Retry attempt ${retries} failed`)
-				this._retryRequest(resolve, reject, endpoint, params, retries);
+				await this._retryRequest(resolve, reject, endpoint, params, retries);
 			}
 		}, retries * 1000);
+	}
+
+	/**
+	 * Indexes the error
+	 *
+	 * @param {object} body
+	 * @returns {Promise<*>}
+	 * @private
+	 */
+	async _handleError(body) {
+		body.source = this.constructor.name;
+
+		return await esClient.request('index', {
+			index: Elasticsearch.INDEX_ERRORS,
+			body
+		});
 	}
 }
 

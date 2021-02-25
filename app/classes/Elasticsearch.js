@@ -201,4 +201,6 @@ class Elasticsearch {
 	}
 }
 
+Elasticsearch.INDEX_ERRORS = 'errors';
+
 module.exports = Elasticsearch;
