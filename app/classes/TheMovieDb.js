@@ -148,8 +148,6 @@ class TheMovieDb {
 			});
 
 			req.end()
-		}).catch(error => {
-			console.log('ERROR!! TheMovieDB messed up', error);
 		});
 	}
 
