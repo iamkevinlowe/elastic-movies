@@ -29,7 +29,7 @@ const processor = async (job, done) => {
 
 		await movie.fetchAdditionalDetails();
 
-		const { reviews, videos, recommendations, similar } = movie;
+		const { reviews = [], videos = [], recommendations = [], similar = [] } = movie;
 		delete movie.reviews;
 		delete movie.videos;
 		delete movie.recommendations;
