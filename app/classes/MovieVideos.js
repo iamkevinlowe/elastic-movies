@@ -1,6 +1,6 @@
 const Elasticsearch = require('./Elasticsearch');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const esClient = new Elasticsearch();
 
 class MovieVideos {
 	/**

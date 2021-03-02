@@ -1,11 +1,21 @@
 const { Client } = require('@elastic/elasticsearch');
 const { capitalize } = require('../utils/UtilString');
 
+const ERROR_LOGGING_INDEX = 'errors_elasticsearch'
+
 class Elasticsearch {
 	/**
 	 * Creates an instance of Elasticsearch
 	 */
 	constructor(options = {}) {
+		options = Object.assign({
+			node: process.env.ES_HOST,
+			auth: {
+				username: process.env.ES_USERNAME,
+				password: process.env.ES_PASSWORD
+			}
+		}, options);
+
 		this._client = new Client(options);
 	}
 
@@ -174,33 +184,46 @@ class Elasticsearch {
 			throw new Error(`Invalid endpoint: ${endpoint}`);
 		}
 
-		try {
-			const response = await method.call(this._client, params, { ignore: [404] });
-			const { statusCode, body } = response;
-			if (
-				statusCode < 400
-				|| statusCode === 404
-			) {
-				return body;
-			}
+		return method.call(this._client, params, { ignore: [404] })
+			.catch(error => {
+				this._client.index({
+					index: ERROR_LOGGING_INDEX,
+					body: {
+						source: this.constructor.name,
+						timestamp: new Date(),
+						message: 'Failed on request',
+						requestParams: params,
+						endpoint,
+						error
+					}
+				});
 
-			console.log(response);
+				throw error;
+			})
+			.then(response => {
+				const { statusCode, body } = response;
+				if (
+					statusCode < 400
+					|| statusCode === 404
+				) {
+					return body;
+				}
 
-			const errorMessage = body
-				&& body.error
-				&& body.error.caused_by
-				&& body.error.caused_by.reason
-				|| `Failed to request ${endpoint}`;
-			const error = new Error(errorMessage);
-			Object.assign(error, body.error);
-			throw error;
-		} catch (e) {
-			console.log('ERROR!! Elasticsearch messed up.', e.message);
-			throw e;
-		}
+				this._client.index({
+					index: ERROR_LOGGING_INDEX,
+					body: {
+						source: this.constructor.name,
+						timestamp: new Date(),
+						message: 'Failed on response',
+						requestParams: params,
+						endpoint,
+						response
+					}
+				});
+
+				throw new Error('Failed on response');
+			});
 	}
 }
-
-Elasticsearch.INDEX_ERRORS = 'errors';
 
 module.exports = Elasticsearch;

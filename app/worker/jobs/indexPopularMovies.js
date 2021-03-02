@@ -4,7 +4,7 @@ const MovieVideos = require('../../classes/MovieVideos');
 const Elasticsearch = require('../../classes/Elasticsearch');
 const Queue = require('../../classes/Queue');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const esClient = new Elasticsearch();
 
 module.exports = async () => {
 	if (!await esClient.ping()) {
