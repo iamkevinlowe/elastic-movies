@@ -5,7 +5,7 @@ const Elasticsearch = require('../../classes/Elasticsearch');
 const Queue = require('../../classes/Queue');
 const { capitalize } = require('../../utils/UtilString');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const esClient = new Elasticsearch();
 
 const processor = async (job, done) => {
 	if (job.data.adult) {

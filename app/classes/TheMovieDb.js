@@ -18,7 +18,9 @@ const ERROR_CODES_RETRYABLE = [
 	ERROR_CODE_TIMEDOUT
 ];
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const ERROR_LOGGING_INDEX = 'errors_the_movie_db'
+
+const esClient = new Elasticsearch();
 
 class TheMovieDb {
 	/**
@@ -217,9 +219,10 @@ class TheMovieDb {
 	 */
 	async _handleError(body) {
 		body.source = this.constructor.name;
+		body.timestamp = new Date();
 
 		return await esClient.request('index', {
-			index: Elasticsearch.INDEX_ERRORS,
+			index: ERROR_LOGGING_INDEX,
 			body
 		});
 	}

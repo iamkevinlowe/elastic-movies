@@ -1,7 +1,7 @@
 const Movie = require('../../classes/Movie');
 const Elasticsearch = require('../../classes/Elasticsearch');
 
-const esClient = new Elasticsearch({ node: process.env.ES_HOST });
+const esClient = new Elasticsearch();
 
 /**
  * Copies documents from source index to target index
