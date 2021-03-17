@@ -32,6 +32,17 @@ services:
         depends_on:
             - redis
 
+    kibana:
+        image: kibana:7.10.1
+        container_name: elastic-movies_kibana
+        environment:
+            ELASTICSEARCH_HOSTS: http://kevinlowe.asuscomm.com:9200
+            ELASTICSEARCH_USERNAME: kibana_system
+            ELASTICSEARCH_PASSWORD: 3lastic
+        restart: on-failure
+        ports:
+            - '5601:5601'
+
     redis:
         image: redis:latest
         container_name: elastic-movies_redis
