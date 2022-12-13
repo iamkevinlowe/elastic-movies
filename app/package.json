@@ -32,7 +32,7 @@
 		"chart.js": "^2.9.4",
 		"core-js": "^3.9.0",
 		"css-loader": "^5.0.2",
-		"express": "^4.17.1",
+		"express": "^4.17.3",
 		"html-webpack-plugin": "^5.2.0",
 		"jquery": "^3.5.1",
 		"qs": "^6.9.6",
