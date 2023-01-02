@@ -24,7 +24,7 @@
 		"@babel/preset-react": "^7.12.13",
 		"@elastic/elasticsearch": "^7.11.0",
 		"@popperjs/core": "^2.8.2",
-		"babel-loader": "^8.2.2",
+		"babel-loader": "^8.3.0",
 		"body-parser": "^1.19.0",
 		"bootstrap": "^4.6.0",
 		"bull": "^3.20.1",
